@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/layout :: head}"></head>
+<body>
+<nav th:replace="~{layout/layout :: navbar}"></nav>
+
+<main id="contenido-principal" class="container mt-4 pb-5">
+    <div class="row g-4">
+
+        <!-- ═══ COLUMNA IZQUIERDA: Datos personales ═══ -->
+        <div class="col-md-5">
+            <div class="card-premium p-4">
+
+                <!-- Avatar y nombre -->
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4"
+                         style="width:56px;height:56px;background:var(--rose-quartz);color:var(--red-wine)"
+                         aria-hidden="true">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <h1 class="h5 fw-bold mb-0 text-wine" th:text="${usuario.nombre}">Nombre</h1>
+                        <span class="small text-muted" th:text="${usuario.correo}">correo</span>
+                        <div class="mt-1">
+                            <span class="badge"
+                                  style="background:var(--rose-quartz);color:var(--red-wine);font-size:.72rem">
+                                <i class="bi bi-person-hearts me-1" aria-hidden="true"></i>Clienta
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje de exito al actualizar -->
+                <div th:if="${exito}" class="alert small py-2 rounded-3 mb-3"
+                     style="background:#E6F4EA;color:#0F5528;border:none"
+                     role="status" aria-live="polite">
+                    <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
+                    Perfil actualizado correctamente.
+                </div>
+
+                <!--
+                    FORMULARIO DE PERFIL
+                    IMPORTANTE: el form de logout debe ir FUERA de este form.
+                    HTML no permite formularios anidados — si el logout estuviera
+                    dentro, al hacer clic dispararía "Guardar cambios" en vez de cerrar sesion.
+                -->
+                <form th:action="@{/perfil/actualizar}" th:object="${usuario}" method="post"
+                      id="formPerfil" novalidate>
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label fw-bold small text-muted">
+                            Nombre completo
+                        </label>
+                        <input type="text" id="nombre" th:field="*{nombre}"
+                               class="form-control" required autocomplete="name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="correoPerfil" class="form-label fw-bold small text-muted">
+                            Correo electronico
+                        </label>
+                        <input type="email" id="correoPerfil" th:value="${usuario.correo}"
+                               class="form-control" disabled style="opacity:.65"
+                               aria-describedby="correoNota">
+                        <p id="correoNota" class="small text-muted mt-1 mb-0">
+                            El correo no se puede cambiar.
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label fw-bold small text-muted">
+                            Telefono
+                        </label>
+                        <input type="tel" id="telefono" th:field="*{telefono}"
+                               class="form-control" placeholder="310 000 0000"
+                               autocomplete="tel">
+                    </div>
+                    <hr style="border-color:var(--rose-quartz)">
+                    <div class="mb-3">
+                        <label for="passwordNuevo" class="form-label fw-bold small text-muted">
+                            Nueva contrasena
+                            <span class="fw-normal text-muted">(dejar vacio para no cambiar)</span>
+                        </label>
+                        <input type="password" id="passwordNuevo" name="passwordNuevo"
+                               class="form-control" placeholder="Minimo 8 caracteres"
+                               minlength="8" autocomplete="new-password">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <!-- Boton que envia este formulario (actualizar perfil) -->
+                        <button type="submit" class="btn btn-club">
+                            <i class="bi bi-check2 me-2" aria-hidden="true"></i>Guardar cambios
+                        </button>
+                        <!-- Enlace a la agenda (no es submit del form) -->
+                        <a th:href="@{/cliente/dashboard}"
+                           class="btn rounded-pill fw-bold"
+                           style="border:1.5px solid var(--red-wine);color:var(--red-wine)">
+                            <i class="bi bi-calendar3 me-2" aria-hidden="true"></i>Ver mi agenda
+                        </a>
+                    </div>
+                </form>
+                <!-- ↑ FIN del formulario de perfil -->
+
+                <!--
+                    FORMULARIO DE LOGOUT — separado del formulario de perfil.
+                    Debe estar fuera del form anterior para que funcione correctamente.
+                    Al hacer clic, envia POST a /logout que Spring Security intercepta
+                    para invalidar la sesion y redirigir al login.
+                -->
+                <form th:action="@{/logout}" method="post" style="margin-top:8px">
+                    <button type="submit"
+                            class="btn btn-outline-danger rounded-pill fw-bold w-100">
+                        <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Cerrar sesion
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- ═══ COLUMNA DERECHA: Historial de citas ═══ -->
+        <div class="col-md-7">
+            <div class="card-premium p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 class="h5 fw-bold text-wine mb-0">
+                        <i class="bi bi-clock-history me-2" aria-hidden="true"></i>Historial de citas
+                    </h2>
+                    <a th:href="@{/reservas/formulario}" class="btn btn-club btn-sm px-3"
+                       aria-label="Agendar nueva cita">
+                        <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Nueva cita
+                    </a>
+                </div>
+
+                <!-- Sin citas -->
+                <div th:if="${historial == null or #lists.isEmpty(historial)}"
+                     class="text-center text-muted py-5">
+                    <i class="bi bi-calendar-x d-block fs-2 mb-2"
+                       style="color:var(--blush)" aria-hidden="true"></i>
+                    Aun no tienes citas registradas.
+                    <div class="mt-3">
+                        <a th:href="@{/reservas/formulario}" class="btn btn-club btn-sm">
+                            Agendar mi primera cita
+                        </a>
+                    </div>
+                </div>
+
+                <div th:if="${historial != null and !#lists.isEmpty(historial)}">
+
+                    <!-- CITAS PENDIENTES -->
+                    <h3 class="h6 fw-bold small text-muted mb-2 mt-1">
+                        <span class="badge" style="background:#FFF3CD;color:#783700;margin-right:4px">●</span>
+                        Pendientes
+                    </h3>
+                    <div th:each="r : ${historial}" th:if="${r.estado == 'PENDIENTE'}"
+                         class="d-flex align-items-center gap-3 py-2 border-bottom"
+                         style="border-color:var(--rose-quartz)!important">
+                        <div style="width:38px;height:38px;border-radius:10px;
+                                    background:var(--rose-quartz);display:flex;
+                                    align-items:center;justify-content:center;flex-shrink:0"
+                             aria-hidden="true">
+                            <i class="bi bi-calendar-event" style="color:var(--red-wine)"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <!-- Nombre del servicio -->
+                            <div class="fw-bold small"
+                                 th:text="${r.servicio != null ? r.servicio.nombre : '-'}">
+                                Servicio
+                            </div>
+                            <!--
+                                Se separa en dos <span> para evitar el error de concatenacion
+                                en Thymeleaf cuando la relacion LAZY no esta totalmente cargada.
+                                Con EAGER en Reserva.java este problema ya no ocurre,
+                                pero la separacion es mas clara y robusta.
+                            -->
+                            <div class="text-muted" style="font-size:.78rem">
+                                <span th:text="${#temporals.format(r.fechaHoraCita,'dd/MM/yyyy HH:mm')}">
+                                    Fecha
+                                </span>
+                                &nbsp;·&nbsp;
+                                <!-- Nombre de la profesional obtenido del objeto cargado por EAGER -->
+                                <span th:text="${r.profesional != null ? r.profesional.nombre : 'Sin asignar'}">
+                                    Profesional
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span th:if="${r.metodoPago == 'EFECTIVO'}"
+                                  class="badge" style="background:#E6F4EA;color:#0F5528;font-size:.7rem">
+                                💵 Efectivo
+                            </span>
+                            <span th:if="${r.metodoPago == 'TARJETA'}"
+                                  class="badge" style="background:#E2F0FD;color:#0A46A0;font-size:.7rem">
+                                💳 Tarjeta
+                            </span>
+                            <span th:if="${r.metodoPago == 'TRANSFERENCIA'}"
+                                  class="badge" style="background:#FEEFC3;color:#783700;font-size:.7rem">
+                                🏦 Transf.
+                            </span>
+                            <span th:if="${r.metodoPago == 'DATAFONO'}"
+                                  class="badge" style="background:#F3E5F5;color:#8E24AA;font-size:.7rem">
+                                📱 Datafono
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- CITAS REALIZADAS -->
+                    <h3 class="h6 fw-bold small text-muted mb-2 mt-3">
+                        <span class="badge" style="background:#D1E7DD;color:#0F5528;margin-right:4px">●</span>
+                        Realizadas
+                    </h3>
+                    <div th:each="r : ${historial}" th:if="${r.estado == 'REALIZADO'}"
+                         class="d-flex align-items-center gap-3 py-2 border-bottom"
+                         style="border-color:var(--rose-quartz)!important;opacity:.85">
+                        <div style="width:38px;height:38px;border-radius:10px;
+                                    background:#E6F4EA;display:flex;
+                                    align-items:center;justify-content:center;flex-shrink:0"
+                             aria-hidden="true">
+                            <i class="bi bi-check2-all" style="color:#0F5528"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small"
+                                 th:text="${r.servicio != null ? r.servicio.nombre : '-'}">
+                                Servicio
+                            </div>
+                            <!-- Misma estructura separada para evitar problemas de concatenacion -->
+                            <div class="text-muted" style="font-size:.78rem">
+                                <span th:text="${#temporals.format(r.fechaHoraCita,'dd/MM/yyyy HH:mm')}">
+                                    Fecha
+                                </span>
+                                &nbsp;·&nbsp;
+                                <span th:text="${r.profesional != null ? r.profesional.nombre : 'Sin asignar'}">
+                                    Profesional
+                                </span>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill"
+                              style="background:#D1E7DD;color:#0F5528;font-size:.7rem">
+                            Realizada
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer th:replace="~{layout/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Girls Club - Agenda por dia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Poppins:wght@300;400;600&display=swap');
+        :root{--rose-quartz:#F9CBD6;--blush:#F2AFBC;--red-wine:#9E182B;--oat-milk:#F2E0D2;--blanco:#FFFFFF;}
+        body{background:var(--oat-milk);font-family:'Poppins',sans-serif;color:#2D2D2D;}
+        .navbar-admin{background:var(--blanco);border-bottom:3px solid var(--rose-quartz);padding:14px 0;}
+        .brand-logo{font-family:'Playfair Display',serif;font-weight:800;font-size:1.8rem;color:var(--red-wine);text-decoration:none;}
+        .card-premium{background:var(--blanco);border:none;border-radius:20px;box-shadow:0 10px 30px rgba(158,24,43,0.06);padding:24px;}
+        .text-wine{color:var(--red-wine)!important;}
+        .nav-pill-admin{background:transparent;border:1.5px solid var(--rose-quartz);border-radius:30px;padding:6px 16px;font-size:.82rem;color:var(--red-wine);font-weight:600;text-decoration:none;transition:.2s;}
+        .nav-pill-admin:hover,.nav-pill-admin.active{background:var(--red-wine);color:#fff;border-color:var(--red-wine);}
+        /* Linea de tiempo de citas */
+        .cita-row{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--rose-quartz);}
+        .cita-row:last-child{border-bottom:none;}
+        .cita-hora{font-weight:700;font-size:.9rem;color:var(--red-wine);min-width:55px;flex-shrink:0;}
+        /* Badges de pago con contraste WCAG AA */
+        .badge-efectivo   {background:#E6F4EA;color:#0F5528;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        .badge-tarjeta    {background:#E2F0FD;color:#0A46A0;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        .badge-transferencia{background:#FEEFC3;color:#783700;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        .badge-datafono   {background:#F3E5F5;color:#8E24AA;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        /* Badges de estado */
+        .estado-pendiente{background:#FFF3CD;color:#783700;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        .estado-realizado{background:#D1E7DD;color:#0F5528;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        .estado-cancelado{background:#E2E3E5;color:#2D2D2D;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
+        a:focus-visible,button:focus-visible{outline:3px solid var(--red-wine);outline-offset:2px;}
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-admin shadow-sm mb-4"
+     role="navigation" aria-label="Navegacion administrativa">
+    <div class="container">
+        <a class="brand-logo" th:href="@{/admin/dashboard}">
+            The Girls Club
+            <span style="font-family:'Poppins';font-size:1rem;font-weight:400;color:#999">| Admin</span>
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-2 flex-wrap">
+            <a th:href="@{/admin/dashboard}"     class="nav-pill-admin">
+                <i class="bi bi-house me-1" aria-hidden="true"></i>Dashboard
+            </a>
+            <a th:href="@{/admin/agenda}"        class="nav-pill-admin active" aria-current="page">
+                <i class="bi bi-calendar-week me-1" aria-hidden="true"></i>Agenda
+            </a>
+            <a th:href="@{/admin/especialistas}" class="nav-pill-admin">
+                <i class="bi bi-people me-1" aria-hidden="true"></i>Especialistas
+            </a>
+            <a th:href="@{/admin/servicios}"     class="nav-pill-admin">
+                <i class="bi bi-scissors me-1" aria-hidden="true"></i>Servicios
+            </a>
+            <form th:action="@{/logout}" method="post" style="margin:0">
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold ms-2">
+                    <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>Cerrar sesion
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main id="contenido-principal" class="container pb-5">
+
+    <div class="row g-4">
+
+        <!-- ═══ SELECTOR DE FECHA ═══ -->
+        <div class="col-md-4">
+            <div class="card-premium">
+                <h2 class="h5 fw-bold text-wine mb-1">
+                    <i class="bi bi-calendar3 me-2" aria-hidden="true"></i>Seleccionar fecha
+                </h2>
+                <p class="text-muted small mb-4">
+                    Elige cualquier dia para ver las citas agendadas.
+                    Puedes revisar dias pasados, el dia de hoy o dias futuros.
+                </p>
+
+                <!--
+                    Al cambiar la fecha, el formulario se envia automaticamente
+                    con GET para que la URL quede como /admin/agenda?fecha=2026-05-20
+                    lo que permite compartir o marcar la URL de un dia especifico.
+                -->
+                <form th:action="@{/admin/agenda}" method="get"
+                      aria-label="Seleccionar fecha para ver citas">
+                    <div class="mb-3">
+                        <label for="fechaPicker" class="form-label fw-bold small text-muted">
+                            Fecha
+                        </label>
+                        <input type="date" id="fechaPicker" name="fecha"
+                               class="form-control"
+                               th:value="${#temporals.format(fechaSeleccionada, 'yyyy-MM-dd')}"
+                               aria-label="Seleccionar fecha">
+                    </div>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold"
+                            style="background:var(--red-wine);color:#fff;border:none">
+                        <i class="bi bi-search me-2" aria-hidden="true"></i>Ver citas de este dia
+                    </button>
+                </form>
+
+                <hr style="border-color:var(--rose-quartz);margin:20px 0">
+
+                <!-- Navegacion rapida entre dias -->
+                <div class="d-flex gap-2" role="group" aria-label="Navegacion rapida">
+                    <a th:href="@{/admin/agenda(fecha=${#temporals.format(fechaSeleccionada.minusDays(1), 'yyyy-MM-dd')})}"
+                       class="btn btn-sm btn-outline-secondary rounded-pill flex-grow-1"
+                       aria-label="Dia anterior">
+                        <i class="bi bi-chevron-left me-1" aria-hidden="true"></i>Anterior
+                    </a>
+                    <a th:href="@{/admin/agenda}"
+                       class="btn btn-sm rounded-pill flex-grow-1"
+                       style="background:var(--rose-quartz);color:var(--red-wine);font-weight:600"
+                       aria-label="Ir a hoy">
+                        Hoy
+                    </a>
+                    <a th:href="@{/admin/agenda(fecha=${#temporals.format(fechaSeleccionada.plusDays(1), 'yyyy-MM-dd')})}"
+                       class="btn btn-sm btn-outline-secondary rounded-pill flex-grow-1"
+                       aria-label="Dia siguiente">
+                        Siguiente<i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                    </a>
+                </div>
+
+                <!-- Resumen del dia -->
+                <div class="mt-4 p-3 rounded-3" style="background:var(--rose-quartz)">
+                    <div class="fw-bold text-wine small mb-1">
+                        <span th:text="${#temporals.format(fechaSeleccionada, 'EEEE, dd MMMM yyyy')}">Fecha</span>
+                    </div>
+                    <div class="text-muted small">
+                        <span th:text="${totalDia}">0</span> cita(s) agendada(s)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ LISTADO DE CITAS DEL DIA ═══ -->
+        <div class="col-md-8">
+            <div class="card-premium">
+                <h2 class="h5 fw-bold text-wine mb-1">
+                    <i class="bi bi-list-ul me-2" aria-hidden="true"></i>
+                    Citas del
+                    <span th:text="${#temporals.format(fechaSeleccionada, 'dd/MM/yyyy')}">fecha</span>
+                </h2>
+                <p class="text-muted small mb-4"
+                   th:text="${totalDia} + ' cita(s) encontrada(s)'">0</p>
+
+                <!-- Sin citas para esa fecha -->
+                <div th:if="${#lists.isEmpty(citasDelDia)}"
+                     class="text-center text-muted py-5">
+                    <i class="bi bi-calendar-x d-block fs-2 mb-2"
+                       style="color:var(--rose-quartz)" aria-hidden="true"></i>
+                    No hay citas para este dia.
+                    <div class="small mt-1">Selecciona otra fecha en el panel izquierdo.</div>
+                </div>
+
+                <!-- Lista de citas ordenadas por hora -->
+                <div role="list" aria-label="Citas del dia seleccionado">
+                    <div th:each="r : ${citasDelDia}" class="cita-row" role="listitem">
+
+                        <!-- Hora de la cita -->
+                        <div class="cita-hora"
+                             th:text="${#temporals.format(r.fechaHoraCita,'HH:mm')}"
+                             aria-label="Hora de la cita">
+                            HH:mm
+                        </div>
+
+                        <!-- Informacion de la cita -->
+                        <div class="flex-grow-1">
+                            <!-- Nombre de la clienta -->
+                            <div class="fw-bold"
+                                 th:text="${r.cliente != null ? r.cliente.nombre : 'Clienta'}">
+                                Nombre
+                            </div>
+                            <!-- Servicio y profesional -->
+                            <div class="text-muted small">
+                                <span th:text="${r.servicio != null ? r.servicio.nombre : '-'}">
+                                    Servicio
+                                </span>
+                                &nbsp;·&nbsp;
+                                <!--
+                                    Con EAGER fetch en Reserva.java, el nombre de la profesional
+                                    se carga automaticamente junto con la reserva.
+                                    No es necesario hacer queries adicionales.
+                                -->
+                                <span th:text="${r.profesional != null ? r.profesional.nombre : 'Sin asignar'}">
+                                    Profesional
+                                </span>
+                            </div>
+                            <!-- Metodo de pago -->
+                            <div class="mt-1">
+                                <span th:if="${r.metodoPago == 'EFECTIVO'}"
+                                      class="badge-efectivo">💵 Efectivo</span>
+                                <span th:if="${r.metodoPago == 'TARJETA'}"
+                                      class="badge-tarjeta">💳 Tarjeta</span>
+                                <span th:if="${r.metodoPago == 'TRANSFERENCIA'}"
+                                      class="badge-transferencia">🏦 Transf.</span>
+                                <span th:if="${r.metodoPago == 'DATAFONO'}"
+                                      class="badge-datafono">📱 Datafono</span>
+                            </div>
+                        </div>
+
+                        <!-- Estado de la cita -->
+                        <div class="text-end flex-shrink-0">
+                            <span th:if="${r.estado == 'PENDIENTE'}"  class="estado-pendiente">PENDIENTE</span>
+                            <span th:if="${r.estado == 'REALIZADO'}"  class="estado-realizado">REALIZADO</span>
+                            <span th:if="${r.estado == 'CANCELADO'}"  class="estado-cancelado">CANCELADO</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

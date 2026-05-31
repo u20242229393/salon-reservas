@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/layout :: head}"></head>
+<body>
+<nav th:replace="~{layout/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div class="breadcrumb-container shadow-sm">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-house-heart me-1"></i> Club Inicio</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="p-5 mb-4 card-premium rounded-3 text-center my-5 position-relative overflow-hidden">
+        <div class="py-5 position-relative" style="z-index: 2;">
+            <h1 class="display-3 fw-bold logo-glow mb-3">The Girls Club</h1>
+            <p class="col-md-8 fs-4 mx-auto mb-4" style="color: var(--red-wine);">Diseño de uñas esculpidas, pedicura de alta precisión y bienestar premium.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a th:href="@{/servicios}" class="btn btn-premium-primary btn-lg px-4 gap-3">Explorar Servicios</a>
+                <a th:href="@{/contactanos}" class="btn btn-premium-secondary btn-lg px-4">Canales de Contacto</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{layout/layout :: footer}"></footer>
+</body>
+</html>

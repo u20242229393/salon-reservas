@@ -1,0 +1,10 @@
+target/
+.idea/
+*.class
+*.log
+*.jar
+*.war
+
+# Variables sensibles
+src/main/resources/application.properties
+target/classes/application.properties

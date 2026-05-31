@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Girls Club - Crear cuenta nueva">
+    <title>The Girls Club - Registro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,700&family=Poppins:wght@300;400;600&display=swap');
+        :root{--rose-quartz:#F9CBD6;--blush:#F2AFBC;--red-wine:#9E182B;--oat-milk:#F2E0D2;--blanco:#FFFFFF;}
+        body{background-color:var(--oat-milk);font-family:'Poppins',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+        .reg-card{background:var(--blanco);border-radius:20px;padding:40px;width:100%;max-width:480px;box-shadow:0 12px 30px rgba(158,24,43,0.08);}
+        .brand-title{font-family:'Playfair Display',serif;font-weight:800;font-size:2rem;color:var(--red-wine);}
+        .form-control{border-radius:12px!important;border:1px solid var(--rose-quartz)!important;padding:10px 15px;}
+        .form-control:focus{border-color:var(--red-wine)!important;box-shadow:0 0 0 0.25rem rgba(158,24,43,0.12)!important;}
+        .form-control:invalid:not(:placeholder-shown){border-color:#dc3545!important;}
+        .form-label{font-size:0.85rem;font-weight:600;color:#555;}
+        .input-group-text{border-color:var(--rose-quartz)!important;background:transparent!important;border-radius:12px 0 0 12px!important;}
+        .btn-wine{background-color:var(--red-wine)!important;color:var(--blanco)!important;font-weight:600;border-radius:30px!important;border:none!important;padding:12px;transition:all .3s;}
+        .btn-wine:hover,.btn-wine:focus{background-color:#7A1121!important;color:var(--blanco)!important;outline:3px solid var(--blush);outline-offset:2px;}
+        .link-wine{color:var(--red-wine)!important;text-decoration:none;font-weight:600;}
+        .link-wine:hover,.link-wine:focus{color:var(--blush)!important;text-decoration:underline;}
+        .alert-error{background:#fce8eb;color:#7A1121;border:1px solid var(--rose-quartz);border-radius:12px;padding:10px 14px;font-size:13px;}
+        #passError{color:#7A1121;font-size:.82rem;}
+    </style>
+</head>
+<body>
+<main>
+<div class="reg-card" role="main">
+    <div class="text-center mb-4">
+        <h1 class="brand-title mb-1" th:text="#{registro.titulo}">Crear cuenta</h1>
+        <p class="text-muted small" th:text="#{registro.subtitulo}">Crea tu cuenta premium</p>
+    </div>
+
+    <div th:if="${errorCorreo}" class="alert-error mb-3" role="alert" aria-live="assertive">
+        <i class="bi bi-exclamation-circle-fill me-2" aria-hidden="true"></i>
+        <span th:text="${errorCorreo}"></span>
+    </div>
+    <div th:if="${errorPassword}" class="alert-error mb-3" role="alert" aria-live="assertive">
+        <i class="bi bi-exclamation-circle-fill me-2" aria-hidden="true"></i>
+        <span th:text="${errorPassword}"></span>
+    </div>
+
+    <form th:action="@{/registro/guardar}" th:object="${usuario}" method="post"
+          id="regForm" novalidate aria-label="Formulario de registro">
+        <div class="mb-3">
+            <label for="nombre" class="form-label" th:text="#{registro.nombre}">Nombre completo</label>
+            <div class="input-group">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-person"></i></span>
+                <input type="text" id="nombre" th:field="*{nombre}"
+                       class="form-control border-start-0" style="border-radius:0 12px 12px 0!important"
+                       placeholder="Maria Garcia" required autocomplete="name"
+                       aria-required="true" minlength="2">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="correo" class="form-label" th:text="#{registro.correo}">Correo</label>
+            <div class="input-group">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-envelope"></i></span>
+                <input type="email" id="correo" th:field="*{correo}"
+                       class="form-control border-start-0" style="border-radius:0 12px 12px 0!important"
+                       placeholder="tu@correo.com" required autocomplete="email"
+                       aria-required="true">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="telefono" class="form-label">
+                <span th:text="#{registro.telefono}">Telefono</span>
+                <span class="text-muted fw-normal" th:text="#{registro.telefono_opcional}">(opcional)</span>
+            </label>
+            <div class="input-group">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-phone"></i></span>
+                <input type="tel" id="telefono" th:field="*{telefono}"
+                       class="form-control border-start-0" style="border-radius:0 12px 12px 0!important"
+                       placeholder="310 000 0000" autocomplete="tel">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">
+                <span th:text="#{registro.password}">Contrasena</span>
+                <span class="text-muted fw-normal" th:text="#{registro.password_min}">(minimo 8)</span>
+            </label>
+            <div class="input-group">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-lock"></i></span>
+                <input type="password" id="password" th:field="*{password}"
+                       class="form-control border-start-0" style="border-radius:0 12px 12px 0!important"
+                       placeholder="••••••••" minlength="8" required autocomplete="new-password"
+                       aria-required="true" aria-describedby="passHint">
+            </div>
+            <div id="passHint" class="text-muted small mt-1">Minimo 8 caracteres</div>
+        </div>
+        <div class="mb-4">
+            <label for="confirmPass" class="form-label" th:text="#{registro.confirmar}">Confirmar</label>
+            <div class="input-group">
+                <span class="input-group-text" aria-hidden="true"><i class="bi bi-lock-fill"></i></span>
+                <input type="password" id="confirmPass"
+                       class="form-control border-start-0" style="border-radius:0 12px 12px 0!important"
+                       placeholder="••••••••" required autocomplete="new-password"
+                       aria-required="true" aria-describedby="passError">
+            </div>
+            <div id="passError" class="mt-1" style="display:none" role="alert" aria-live="polite">
+                <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                Las contrasenas no coinciden.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-wine w-100 shadow-sm mb-3"
+                th:text="#{registro.boton}">Crear mi cuenta</button>
+    </form>
+
+    <div class="text-center mt-2">
+        <p class="small text-muted mb-1" th:text="#{registro.ya_cuenta}">Ya tienes cuenta?</p>
+        <a th:href="@{/login}" class="link-wine small" th:text="#{registro.iniciar}">Iniciar sesion</a>
+        <div class="mt-3 border-top pt-3" style="border-color:var(--rose-quartz)">
+            <a th:href="@{/}" class="text-muted small text-decoration-none">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inicio
+            </a>
+        </div>
+    </div>
+</div>
+</main>
+
+<script>
+document.getElementById('regForm').addEventListener('submit',function(e){
+    var p1=document.getElementById('password').value;
+    var p2=document.getElementById('confirmPass').value;
+    var err=document.getElementById('passError');
+    if(p1!==p2){
+        e.preventDefault();
+        err.style.display='block';
+        document.getElementById('confirmPass').setAttribute('aria-invalid','true');
+    } else {
+        err.style.display='none';
+        document.getElementById('confirmPass').removeAttribute('aria-invalid');
+    }
+});
+document.getElementById('confirmPass').addEventListener('input',function(){
+    document.getElementById('passError').style.display='none';
+    this.removeAttribute('aria-invalid');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<!--
+    layout.html — Plantilla base de The Girls Club
+    ================================================
+    Este archivo define la estructura compartida de TODAS las páginas del sistema:
+    - head: metadatos, fuentes, Bootstrap CSS, estilos globales
+    - navbar: barra de navegación con roles, dropdown de usuario y selector de idioma
+    - footer: pie de página con redes sociales
+
+    Tecnologías usadas:
+    - Thymeleaf: motor de plantillas (th:fragment, th:text, th:href, th:classappend)
+    - Spring Security: directivas sec:authorize para mostrar/ocultar por rol
+    - i18n: #{clave} para textos internacionalizados (ES/EN/PT/IT)
+    - Bootstrap 5.3: navbar, dropdowns, grid
+    - JS puro: selector de idioma custom (evita conflictos con Bootstrap)
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FRAGMENTO HEAD — incluido en todas las páginas con:
+     <head th:replace="~{layout/layout :: head}"></head>
+     ═══════════════════════════════════════════════════════════════ -->
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Girls Club - Salon de unas premium en Neiva, Colombia">
+    <title>The Girls Club - Nails Studio</title>
+
+    <!-- Bootstrap 5.3 CSS — framework de estilos y componentes -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons — iconografía vectorial -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        /* ── Fuentes tipográficas del proyecto ─────────────────────
+           Playfair Display: títulos y marca (elegante, serif)
+           Poppins: textos generales (moderno, sans-serif)
+        ─────────────────────────────────────────────────────────── */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,700&family=Poppins:wght@300;400;600&display=swap');
+
+        /* ── Paleta de colores de The Girls Club ───────────────────
+           Todos los colores del sitio se definen aquí como variables CSS.
+           Modificar una variable actualiza todo el sitio automáticamente.
+        ─────────────────────────────────────────────────────────── */
+        :root {
+            --rose-quartz: #F9CBD6;   /* Rosa claro — fondos y bordes suaves */
+            --blush:       #F2AFBC;   /* Rosa medio — hover y acentos */
+            --red-wine:    #9E182B;   /* Vino tinto — color principal de marca */
+            --oat-milk:    #F2E0D2;   /* Crema — fondo general de todas las páginas */
+            --blanco-puro: #FFFFFF;   /* Blanco — fondos de tarjetas y navbar */
+        }
+
+        /* ── Estilos globales del body ─────────────────────────── */
+        body { background-color: var(--oat-milk); font-family: 'Poppins', sans-serif; color: #2D2D2D; }
+
+        /* ── Logotipo de la marca ──────────────────────────────── */
+        .brand-logo { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 2rem; color: var(--red-wine)!important; text-decoration: none!important; }
+
+        /* ── Navbar ────────────────────────────────────────────── */
+        .navbar-custom { background: var(--blanco-puro); border-bottom: 2px solid var(--rose-quartz); }
+        .nav-link { color: #2D2D2D!important; font-weight: 500; }
+        .nav-link:hover { color: var(--red-wine)!important; }
+
+        /* ── Botón principal de acción (Agendar cita, etc.) ─────── */
+        .btn-club { background-color: var(--red-wine); color: var(--blanco-puro)!important; border: none; border-radius: 30px; font-weight: 600; transition: all .3s; }
+        .btn-club:hover { background-color: var(--blush); color: var(--red-wine)!important; }
+
+        /* ── Tarjeta premium — contenedor principal de contenido ── */
+        .card-premium { background: var(--blanco-puro); border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(158,24,43,0.06); }
+
+        /* ── Campos de formulario ──────────────────────────────── */
+        .form-control, .form-select { border-radius: 10px!important; border: 1px solid var(--rose-quartz)!important; }
+        .form-control:focus, .form-select:focus { border-color: var(--blush)!important; box-shadow: 0 0 0 0.25rem rgba(242,175,188,0.25)!important; }
+
+        /* ── Utilidades de color ───────────────────────────────── */
+        .text-wine { color: var(--red-wine)!important; }
+        .link-wine { color: var(--red-wine)!important; text-decoration: none; font-weight: 600; }
+        .link-wine:hover { color: var(--blush)!important; }
+
+        /* ── Dropdown del usuario en el navbar ─────────────────── */
+        .dropdown-menu { border: none; box-shadow: 0 8px 24px rgba(158,24,43,0.12); border-radius: 12px; min-width: 200px; }
+        .dropdown-item:hover, .dropdown-item:focus { background: var(--rose-quartz); color: var(--red-wine); }
+
+        /* ── Selector de idioma custom ─────────────────────────────
+           Se implementa con CSS + JS puro (no Bootstrap dropdown)
+           para evitar conflictos con la inicialización del navbar.
+        ─────────────────────────────────────────────────────────── */
+        .lang-btn-toggle {
+            background: transparent;
+            border: 1.5px solid var(--rose-quartz);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: .82rem;
+            color: #2D2D2D;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: .2s;
+        }
+        .lang-btn-toggle:hover, .lang-btn-toggle:focus {
+            background: var(--rose-quartz);
+            color: var(--red-wine);
+            outline: none;
+        }
+        /* El menú empieza oculto (display:none) y se muestra
+           agregando la clase .open mediante JavaScript */
+        .lang-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            background: var(--blanco-puro);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(158,24,43,0.12);
+            min-width: 150px;
+            z-index: 1050;
+            display: none;
+            padding: 6px 0;
+        }
+        .lang-dropdown.open { display: block; }
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: .82rem;
+            color: #2D2D2D;
+            text-decoration: none;
+            transition: .15s;
+        }
+        .lang-option:hover { background: var(--rose-quartz); color: var(--red-wine); }
+        /* El idioma activo se resalta en negrita y color vino */
+        .lang-option.active-lang { font-weight: 700; color: var(--red-wine); }
+
+        /* ── Skip link — accesibilidad teclado (WCAG 2.4.1) ────────
+           Invisible por defecto, aparece al recibir foco con Tab.
+           Permite a usuarios de teclado saltar directo al contenido.
+        ─────────────────────────────────────────────────────────── */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: var(--red-wine);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 0 0 8px 0;
+            font-weight: 600;
+            text-decoration: none;
+            z-index: 9999;
+        }
+        .skip-link:focus { top: 0; }
+
+        /* ── Focus visible — accesibilidad teclado (WCAG 2.4.7) ─── */
+        a:focus-visible, button:focus-visible { outline: 3px solid var(--red-wine); outline-offset: 2px; }
+    </style>
+</head>
+
+<body>
+<!-- Skip link: primer elemento de la página, solo visible al navegar con Tab -->
+<a href="#contenido-principal" class="skip-link">Saltar al contenido principal</a>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FRAGMENTO NAVBAR — incluido en todas las páginas con:
+     <nav th:replace="~{layout/layout :: navbar}"></nav>
+
+     Estructura:
+     1. Logo / marca
+     2. Links de navegación general (Inicio, Servicios, Contáctanos)
+     3. Botón de acción según rol (Iniciar sesión / Mi agenda)
+     4. Dropdown del usuario (solo autenticados) con opciones por rol
+     5. Selector de idioma (ES/EN/PT/IT)
+
+     Las directivas sec:authorize muestran u ocultan elementos
+     según el rol del usuario autenticado:
+     - isAnonymous(): no autenticado
+     - hasAuthority('ROLE_X'): rol exacto
+     - hasAnyAuthority('ROLE_X','ROLE_Y'): cualquiera de los roles
+     ═══════════════════════════════════════════════════════════════ -->
+<nav th:fragment="navbar"
+     class="navbar navbar-expand-lg navbar-custom shadow-sm"
+     role="navigation"
+     aria-label="Navegación principal">
+    <div class="container">
+
+        <!-- Logotipo — enlace al inicio -->
+        <a class="navbar-brand brand-logo" th:href="@{/}" aria-label="The Girls Club - Inicio">
+            The Girls Club
+        </a>
+
+        <!-- Botón hamburguesa para pantallas pequeñas (responsive) -->
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false"
+                aria-label="Abrir menú de navegación">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="mainNav">
+            <ul class="navbar-nav gap-2 align-items-center">
+
+                <!-- ── Links de navegación general ──────────────── -->
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}" th:text="#{nav.inicio}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/servicios}" th:text="#{nav.servicios}">Servicios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/contactanos}" th:text="#{nav.contactanos}">Contactanos</a>
+                </li>
+
+                <!-- ── Botón de acción por rol ───────────────────── -->
+                <!-- Sin sesión: muestra "Iniciar sesión" -->
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="btn btn-club py-2 px-4" th:href="@{/login}"
+                       th:text="#{nav.iniciar_sesion}">Iniciar sesion</a>
+                </li>
+                <!-- Clienta o Admin: muestra "Mi agenda" (dashboard clienta) -->
+                <li class="nav-item" sec:authorize="hasAnyAuthority('ROLE_CLIENTE','ROLE_ADMIN')">
+                    <a class="btn btn-club py-2 px-4" th:href="@{/cliente/dashboard}"
+                       th:text="#{nav.mi_agenda}">Mi agenda</a>
+                </li>
+                <!-- Especialista: muestra "Mi agenda" (agenda especialista) -->
+                <li class="nav-item" sec:authorize="hasAuthority('ROLE_PROFESIONAL')">
+                    <a class="btn btn-club py-2 px-4" th:href="@{/especialista/agenda}"
+                       th:text="#{nav.mi_agenda}">Mi agenda</a>
+                </li>
+
+                <!-- ── Dropdown del usuario autenticado ─────────────
+                     Solo visible cuando hay sesión activa.
+                     Las opciones del menú varían según el rol.
+                ────────────────────────────────────────────────── -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
+                       href="#" id="navUserDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                        <!-- Avatar circular con icono de persona -->
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold"
+                             style="width:32px;height:32px;background:var(--rose-quartz);color:var(--red-wine);font-size:.82rem"
+                             aria-hidden="true">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <!-- Muestra el nombre de usuario (correo) de la sesión -->
+                        <span sec:authentication="name" class="small">Mi cuenta</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navUserDropdown">
+                        <!-- Opciones para ROLE_CLIENTE y ROLE_ADMIN -->
+                        <li sec:authorize="hasAnyAuthority('ROLE_CLIENTE','ROLE_ADMIN')">
+                            <a class="dropdown-item py-2" th:href="@{/cliente/dashboard}"
+                               th:text="#{nav.mi_agenda}">Mi agenda</a>
+                        </li>
+                        <li sec:authorize="hasAnyAuthority('ROLE_CLIENTE','ROLE_ADMIN')">
+                            <a class="dropdown-item py-2" th:href="@{/perfil}"
+                               th:text="#{nav.mi_perfil}">Mi perfil</a>
+                        </li>
+                        <li sec:authorize="hasAnyAuthority('ROLE_CLIENTE','ROLE_ADMIN')">
+                            <a class="dropdown-item py-2" th:href="@{/reservas/formulario}"
+                               th:text="#{nav.nueva_cita}">Nueva cita</a>
+                        </li>
+                        <!-- Opción exclusiva para ROLE_PROFESIONAL -->
+                        <li sec:authorize="hasAuthority('ROLE_PROFESIONAL')">
+                            <a class="dropdown-item py-2" th:href="@{/especialista/agenda}"
+                               th:text="#{nav.mi_agenda}">Mi agenda</a>
+                        </li>
+                        <!-- Opción exclusiva para ROLE_ADMIN -->
+                        <li sec:authorize="hasAuthority('ROLE_ADMIN')">
+                            <a class="dropdown-item py-2" th:href="@{/admin/dashboard}"
+                               th:text="#{nav.panel_admin}">Panel admin</a>
+                        </li>
+                        <li><hr class="dropdown-divider" style="border-color:var(--rose-quartz)"></li>
+                        <!-- Cerrar sesión: POST a /logout (Spring Security requiere POST) -->
+                        <li>
+                            <form th:action="@{/logout}" method="post" style="margin:0;padding:0">
+                                <button type="submit"
+                                        class="dropdown-item py-2 text-danger fw-bold"
+                                        style="background:none;border:none;width:100%;text-align:left;cursor:pointer"
+                                        th:text="#{nav.cerrar_sesion}">Cerrar sesion</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- ── Selector de idioma ────────────────────────────
+                     Implementado con CSS + JS puro (NO Bootstrap dropdown).
+                     Motivo: Bootstrap interfería con la inicialización.
+
+                     Funcionamiento:
+                     - Al hacer clic en el botón, JS agrega/quita la clase .open
+                     - Al seleccionar un idioma, navega a la misma URL con ?lang=XX
+                     - LocaleChangeInterceptor captura el parámetro y guarda en sesión
+                     - SessionLocaleResolver mantiene el idioma para toda la sesión
+
+                     Switch de Thymeleaf: muestra el código del idioma activo (ES/EN/PT/IT)
+                ────────────────────────────────────────────────── -->
+                <li class="nav-item" style="position:relative">
+                    <button class="lang-btn-toggle" id="langToggle"
+                            aria-haspopup="true" aria-expanded="false"
+                            aria-label="Seleccionar idioma">
+                        🌐
+                        <!--
+                            Switch de Thymeleaf para mostrar el código del idioma activo.
+                            Es más limpio que múltiples th:if anidados.
+                            th:switch evalúa la expresión una sola vez y ejecuta
+                            solo el bloque th:case que coincide.
+                        -->
+                        <span th:switch="${#locale.language}">
+                            <span th:case="'en'">EN</span>
+                            <span th:case="'pt'">PT</span>
+                            <span th:case="'it'">IT</span>
+                            <!-- th:case="*" es el caso por defecto (como "default" en Java) -->
+                            <span th:case="*">ES</span>
+                        </span>
+                        <i class="bi bi-chevron-down" style="font-size:.65rem" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- Menú desplegable de idiomas — visible solo con clase .open -->
+                    <div class="lang-dropdown" id="langDropdown"
+                         role="menu" aria-label="Opciones de idioma">
+                        <!--
+                            Cada opción navega a la página actual añadiendo ?lang=XX.
+                            th:href="@{''(lang=es)}" genera la URL actual + ?lang=es
+                            th:classappend agrega 'active-lang' al idioma seleccionado.
+                            hreflang indica el idioma del destino (SEO y accesibilidad).
+                        -->
+                        <a th:href="@{''(lang=es)}" class="lang-option"
+                           th:classappend="${#locale.language == 'es'} ? ' active-lang'"
+                           role="menuitem" hreflang="es">
+                            🇨🇴 <span th:text="#{idioma.es}">Español</span>
+                        </a>
+                        <a th:href="@{''(lang=en)}" class="lang-option"
+                           th:classappend="${#locale.language == 'en'} ? ' active-lang'"
+                           role="menuitem" hreflang="en">
+                            🇺🇸 <span th:text="#{idioma.en}">English</span>
+                        </a>
+                        <a th:href="@{''(lang=pt)}" class="lang-option"
+                           th:classappend="${#locale.language == 'pt'} ? ' active-lang'"
+                           role="menuitem" hreflang="pt">
+                            🇧🇷 <span th:text="#{idioma.pt}">Português</span>
+                        </a>
+                        <a th:href="@{''(lang=it)}" class="lang-option"
+                           th:classappend="${#locale.language == 'it'} ? ' active-lang'"
+                           role="menuitem" hreflang="it">
+                            🇮🇹 <span th:text="#{idioma.it}">Italiano</span>
+                        </a>
+                    </div>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FRAGMENTO FOOTER — incluido en todas las páginas con:
+     <footer th:replace="~{layout/layout :: footer}"></footer>
+
+     role="contentinfo" es el rol ARIA semántico del pie de página.
+     ═══════════════════════════════════════════════════════════════ -->
+<footer th:fragment="footer"
+        class="mt-5 py-4 text-center"
+        style="background-color:var(--red-wine);color:white"
+        role="contentinfo">
+    <div class="container">
+        <p class="mb-1 fw-semibold">The Girls Club &copy; 2026 - Nails Studio</p>
+        <!-- th:text usa la clave i18n footer.texto del archivo messages.properties -->
+        <p class="mb-0 small" th:text="#{footer.texto}">Diseno de unas esculpidas.</p>
+        <!-- Redes sociales — aria-label describe el destino (accesibilidad) -->
+        <div class="mt-2">
+            <a href="#" class="text-white me-3" aria-label="Instagram">
+                <i class="bi bi-instagram" aria-hidden="true"></i></a>
+            <a href="#" class="text-white me-3" aria-label="WhatsApp">
+                <i class="bi bi-whatsapp" aria-hidden="true"></i></a>
+            <a href="#" class="text-white" aria-label="Facebook">
+                <i class="bi bi-facebook" aria-hidden="true"></i></a>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS Bundle (incluye Popper.js para tooltips y dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/**
+ * Inicialización de componentes JavaScript del layout.
+ *
+ * Se ejecuta cuando el DOM está completamente cargado (DOMContentLoaded)
+ * para garantizar que todos los elementos HTML estén disponibles.
+ */
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ── Inicializar dropdowns de Bootstrap ──────────────────────────
+    // Bootstrap requiere inicialización manual en proyectos con Thymeleaf
+    // porque el DOM puede estar listo antes que Bootstrap procese los atributos.
+    // popperConfig: null evita errores con Popper.js en entornos locales.
+    document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
+        new bootstrap.Dropdown(el, { popperConfig: null });
+    });
+
+    // ── Selector de idioma custom ────────────────────────────────────
+    // Se usa JS puro en lugar de Bootstrap dropdown para evitar
+    // conflictos con la inicialización del navbar.
+    var langToggle   = document.getElementById('langToggle');
+    var langDropdown = document.getElementById('langDropdown');
+
+    if (langToggle && langDropdown) {
+
+        // Al hacer clic en el botón 🌐: abrir o cerrar el menú
+        // preventDefault: evita comportamiento por defecto del botón
+        // stopPropagation: evita que el clic se propague al document
+        //   (lo que cerraría el menú inmediatamente por el listener de abajo)
+        langToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var estaAbierto = langDropdown.classList.contains('open');
+            langDropdown.classList.toggle('open', !estaAbierto);
+            langToggle.setAttribute('aria-expanded', String(!estaAbierto));
+        });
+
+        // Cerrar el menú al hacer clic en cualquier parte fuera de él
+        document.addEventListener('click', function(e) {
+            if (!langToggle.contains(e.target) && !langDropdown.contains(e.target)) {
+                langDropdown.classList.remove('open');
+                langToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Cerrar el menú con la tecla Escape y devolver foco al botón
+        // Esto es un requisito de accesibilidad WCAG 2.1 (criterio 1.4.13)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && langDropdown.classList.contains('open')) {
+                langDropdown.classList.remove('open');
+                langToggle.setAttribute('aria-expanded', 'false');
+                langToggle.focus();
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>

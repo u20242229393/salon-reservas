@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head th:replace="~{layout/layout :: head}"></head>
+<body>
+<nav th:replace="~{layout/layout :: navbar}"></nav>
+
+<div class="container mt-4 pb-5">
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card-premium p-4">
+                <h1 class="fw-bold mb-4 text-wine h4" th:text="#{reserva.titulo}">Reserva tu turno</h1>
+
+                <div th:if="${param.exito}" class="alert alert-success rounded-3 small py-2 mb-3"
+                     role="status" aria-live="polite">
+                    <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
+                    <span th:text="#{reserva.exito}">Cita agendada con exito</span>
+                </div>
+
+                <form th:action="@{/reservas/guardar}" th:object="${reserva}" method="post" novalidate>
+                    <input type="hidden" th:field="*{estado}">
+
+                    <div class="mb-3">
+                        <label for="servicio" class="form-label fw-bold small text-muted"
+                               th:text="#{reserva.servicio}">Servicio</label>
+                        <select id="servicio" th:field="*{servicio}" class="form-select"
+                                required aria-required="true">
+                            <option value="" disabled selected>---</option>
+                            <option th:each="ser : ${servicios}"
+                                    th:value="${ser.id}"
+                                    th:text="${ser.nombre} + ' - $' + ${#numbers.formatInteger(ser.precio,1,'COMMA')}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="profesional" class="form-label fw-bold small text-muted"
+                               th:text="#{reserva.estilista}">Estilista</label>
+                        <select id="profesional" th:field="*{profesional}" class="form-select"
+                                required aria-required="true">
+                            <option value="" disabled selected>---</option>
+                            <option th:each="prof : ${profesionales}"
+                                    th:value="${prof.id}" th:text="${prof.nombre}"></option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="fechaCita" class="form-label fw-bold small text-muted"
+                                   th:text="#{reserva.fecha}">Fecha</label>
+                            <input type="date" id="fechaCita" class="form-control"
+                                   required aria-required="true">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="horaCita" class="form-label fw-bold small text-muted"
+                                   th:text="#{reserva.hora}">Hora</label>
+                            <select id="horaCita" class="form-select" required aria-required="true">
+                                <option value="" disabled selected>---</option>
+                                <option th:each="h : ${horasDisponibles}" th:value="${h}" th:text="${h}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" th:field="*{fechaHoraCita}" id="fechaHoraCitaHidden">
+
+                    <fieldset class="mb-4">
+                        <legend class="form-label fw-bold small text-muted"
+                                th:text="#{reserva.pago}">Metodo de pago</legend>
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <input type="radio" class="btn-check" th:field="*{metodoPago}"
+                                       value="EFECTIVO" id="pagoEfectivo" required>
+                                <label class="btn btn-outline-danger w-100 py-3 text-center rounded-3 d-flex flex-column align-items-center justify-content-center shadow-sm"
+                                       for="pagoEfectivo" style="border-color:var(--rose-quartz);color:var(--red-wine)">
+                                    <i class="bi bi-cash-coin fs-4 mb-1" aria-hidden="true"></i>
+                                    <span class="fw-bold small" th:text="#{reserva.efectivo}">Efectivo</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="radio" class="btn-check" th:field="*{metodoPago}"
+                                       value="TRANSFERENCIA" id="pagoTransferencia">
+                                <label class="btn btn-outline-danger w-100 py-3 text-center rounded-3 d-flex flex-column align-items-center justify-content-center shadow-sm"
+                                       for="pagoTransferencia" style="border-color:var(--rose-quartz);color:var(--red-wine)">
+                                    <i class="bi bi-bank fs-4 mb-1" aria-hidden="true"></i>
+                                    <span class="fw-bold small" th:text="#{reserva.transferencia}">Nequi</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="radio" class="btn-check" th:field="*{metodoPago}"
+                                       value="TARJETA" id="pagoTarjeta">
+                                <label class="btn btn-outline-danger w-100 py-3 text-center rounded-3 d-flex flex-column align-items-center justify-content-center shadow-sm"
+                                       for="pagoTarjeta" style="border-color:var(--rose-quartz);color:var(--red-wine)">
+                                    <i class="bi bi-credit-card-2-back fs-4 mb-1" aria-hidden="true"></i>
+                                    <span class="fw-bold small" th:text="#{reserva.tarjeta}">Tarjeta</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="radio" class="btn-check" th:field="*{metodoPago}"
+                                       value="DATAFONO" id="pagoDatafono">
+                                <label class="btn btn-outline-danger w-100 py-3 text-center rounded-3 d-flex flex-column align-items-center justify-content-center shadow-sm"
+                                       for="pagoDatafono" style="border-color:var(--rose-quartz);color:var(--red-wine)">
+                                    <i class="bi bi-phone-vibrate fs-4 mb-1" aria-hidden="true"></i>
+                                    <span class="fw-bold small" th:text="#{reserva.datafono}">Datafono</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="info-efectivo" class="alert small py-2 mb-0 mt-2 rounded-3"
+                             style="display:none;background:#E6F4EA;color:#198754;border:none"
+                             role="status" aria-live="polite">
+                            <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Pagas en efectivo al llegar al salon.
+                        </div>
+                        <div id="info-transferencia" class="alert small py-2 mb-0 mt-2 rounded-3"
+                             style="display:none;background:#FEEFC3;color:#B35B00;border:none"
+                             role="status" aria-live="polite">
+                            <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nequi: <strong>310 000 0000</strong>. Envia el comprobante por WhatsApp.
+                        </div>
+                        <div id="info-tarjeta" class="alert small py-2 mb-0 mt-2 rounded-3"
+                             style="display:none;background:#E2F0FD;color:#0D6EFD;border:none"
+                             role="status" aria-live="polite">
+                            <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Tu pago con tarjeta queda confirmado automaticamente.
+                        </div>
+                        <div id="info-datafono" class="alert small py-2 mb-0 mt-2 rounded-3"
+                             style="display:none;background:#F3E5F5;color:#8E24AA;border:none"
+                             role="status" aria-live="polite">
+                            <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Pagas con datafono al finalizar tu cita.
+                        </div>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn-club w-100 py-2 shadow mt-1">
+                        <i class="bi bi-calendar-check me-2" aria-hidden="true"></i>
+                        <span th:text="#{reserva.confirmar}">Confirmar y agendar turno</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <aside class="col-md-4" aria-label="Información adicional">
+            <div class="p-4 rounded-4 text-white shadow-sm" style="background-color:var(--red-wine)">
+                <h2 class="h5 fw-bold mb-3" th:text="#{reserva.info_titulo}">Informacion</h2>
+                <p class="small opacity-75" th:text="#{reserva.info_texto}">Las citas con Tarjeta se confirman al instante.</p>
+                <hr style="border-color:var(--rose-quartz)">
+                <div class="p-3 rounded-3 bg-white bg-opacity-10">
+                    <h3 class="h6 fw-bold small mb-1">
+                        <i class="bi bi-clock me-1 text-warning" aria-hidden="true"></i>
+                        <span th:text="#{reserva.cancelaciones}">Cancelaciones</span>
+                    </h3>
+                    <p class="small mb-0 opacity-90" th:text="#{reserva.cancelaciones_texto}">Cancela con al menos 2 horas de anticipacion.</p>
+                </div>
+            </div>
+
+            <div th:if="${historial != null and !#lists.isEmpty(historial)}" class="card-premium p-3 mt-3">
+                <h2 class="h6 fw-bold text-wine mb-2">
+                    <i class="bi bi-clock-history me-1" aria-hidden="true"></i>
+                    <span th:text="#{reserva.recientes}">Mis citas recientes</span>
+                </h2>
+                <div th:each="r, stat : ${historial}" th:if="${stat.index < 3}">
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom"
+                         style="border-color:var(--rose-quartz)!important">
+                        <div>
+                            <div class="small fw-bold" th:text="${r.servicio != null ? r.servicio.nombre : '-'}">Servicio</div>
+                            <div class="small text-muted" th:text="${#temporals.format(r.fechaHoraCita,'dd/MM/yyyy')}">Fecha</div>
+                        </div>
+                        <span th:class="${r.estado == 'PENDIENTE' ? 'badge bg-warning text-dark' :
+                                          r.estado == 'REALIZADO' ? 'badge bg-success' : 'badge bg-secondary'}"
+                              th:text="${r.estado}" style="font-size:0.7rem">ESTADO</span>
+                    </div>
+                </div>
+                <a th:href="@{/perfil}" class="small link-wine d-block text-end mt-2"
+                   th:text="#{reserva.ver_historial}">Ver historial completo</a>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+document.getElementById('fechaCita').min = new Date().toISOString().split('T')[0];
+function actualizarFechaHora() {
+    var fecha = document.getElementById('fechaCita').value;
+    var hora  = document.getElementById('horaCita').value;
+    if (fecha && hora) document.getElementById('fechaHoraCitaHidden').value = fecha + 'T' + hora + ':00';
+}
+document.getElementById('fechaCita').addEventListener('change', actualizarFechaHora);
+document.getElementById('horaCita').addEventListener('change', actualizarFechaHora);
+
+var infos = { EFECTIVO:'efectivo', TRANSFERENCIA:'transferencia', TARJETA:'tarjeta', DATAFONO:'datafono' };
+document.querySelectorAll('input[name="metodoPago"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        Object.values(infos).forEach(function(k) { document.getElementById('info-'+k).style.display='none'; });
+        if (infos[this.value]) document.getElementById('info-'+infos[this.value]).style.display='block';
+    });
+});
+</script>
+<footer th:replace="~{layout/layout :: footer}"></footer>
+</body>
+</html>

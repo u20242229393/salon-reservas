@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,700&family=Poppins:wght@300;400;600&display=swap');
+
+:root {
+    --rose-quartz: #F9CBD6;
+    --blush: #F2AFBC;
+    --red-wine: #9E182B;
+    --oat-milk: #F2E0D2;
+    --blanco-puro: #FFFFFF;
+}
+
+body {
+    background-color: var(--oat-milk) !important;
+    font-family: 'Poppins', sans-serif;
+    color: #2D2D2D;
+    margin: 0;
+    padding: 0;
+}
+
+/* El Logo Corporativo de The Girls Club */
+.brand-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--red-wine) !important;
+    letter-spacing: -0.5px;
+}
+
+.login-card {
+    background: var(--blanco-puro) !important;
+    border-radius: 20px !important;
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(158, 24, 43, 0.08) !important;
+    padding: 40px;
+}
+
+.text-wine {
+    color: var(--red-wine) !important;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+.btn-wine {
+    background-color: var(--red-wine) !important;
+    color: var(--blanco-puro) !important;
+    font-weight: 600;
+    border-radius: 30px !important;
+    border: none !important;
+    transition: all 0.3s ease;
+}
+
+.btn-wine:hover {
+    background-color: var(--blush) !important;
+    color: var(--red-wine) !important;
+}
+
+.form-control {
+    border-radius: 10px !important;
+    border: 1px solid var(--rose-quartz) !important;
+    padding: 10px 15px;
+}
+
+.form-control:focus {
+    border-color: var(--blush) !important;
+    box-shadow: 0 0 0 0.25rem rgba(242, 175, 188, 0.25) !important;
+}
