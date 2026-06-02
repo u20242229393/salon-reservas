@@ -19,8 +19,24 @@ import java.util.Optional;
 
 /**
  * GoogleOAuth2SuccessHandler — Maneja el éxito del login con Google.
-
-
+ *
+ * Flujo completo del login con Google:
+ * 1. La clienta hace clic en "Continuar con Google" en el login
+ * 2. Spring Security redirige a Google para autenticación
+ * 3. Google autentica y devuelve el código de autorización
+ * 4. Spring Security intercambia el código por un token OAuth2
+ * 5. Este handler recibe el control con los datos del usuario de Google
+ * 6. Busca si el correo ya existe en la BD:
+ *    - SÍ existe → usa ese usuario con su rol actual
+ *    - NO existe → crea automáticamente un nuevo ROLE_CLIENTE
+ * 7. Reemplaza la autenticación OAuth2 por una basada en roles de BD
+ * 8. Redirige al dashboard correspondiente según el rol
+ *
+ * Por qué UsuarioRepository directamente (no UsuarioService):
+ * UsuarioService inyecta SecurityConfig → SecurityConfig inyecta este handler
+ * → esto crearía un ciclo de dependencias que Spring no puede resolver.
+ * Usar el repository directamente rompe el ciclo.
+ *
  * @Component registra esta clase como Bean de Spring (se inyecta automáticamente).
  */
 @Component

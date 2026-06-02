@@ -5,6 +5,7 @@ import co.edu.usco.reservas.service.ReservaService;
 import co.edu.usco.reservas.service.UsuarioService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.LocaleResolver;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 @Controller
@@ -21,40 +24,33 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
     private final ReservaService reservaService;
-    // LocaleResolver permite guardar el idioma elegido en la sesion HTTP
-    // para que persista entre paginas y redirecciones
     private final LocaleResolver localeResolver;
+    // MessageSource inyectado en el constructor para obtener
+    // los nombres de meses y días de la semana traducidos al idioma activo
+    private final MessageSource messageSource;
 
     public AuthController(UsuarioService usuarioService,
                           ReservaService reservaService,
-                          LocaleResolver localeResolver) {
-        this.usuarioService = usuarioService;
-        this.reservaService = reservaService;
-        this.localeResolver = localeResolver;
+                          LocaleResolver localeResolver,
+                          MessageSource messageSource) {
+        this.usuarioService   = usuarioService;
+        this.reservaService   = reservaService;
+        this.localeResolver   = localeResolver;
+        this.messageSource    = messageSource;
     }
 
-    /**
-     * Muestra la pagina de login.
-     * Si viene el parametro ?lang=XX, guarda el idioma en la sesion
-     * para que persista incluso despues del redirect que hace Spring Security
-     * al autenticar exitosamente.
-     */
     @GetMapping("/login")
     public String mostrarLogin(
             @RequestParam(value = "lang", required = false) String lang,
             HttpServletRequest request,
             HttpServletResponse response) {
-
         if (lang != null && !lang.isBlank()) {
-            // Convertimos el codigo de idioma a un objeto Locale
             Locale locale = switch (lang) {
                 case "en" -> Locale.ENGLISH;
                 case "pt" -> new Locale("pt");
                 case "it" -> Locale.ITALIAN;
                 default   -> new Locale("es");
             };
-            // Guardamos el Locale en la sesion HTTP
-            // SessionLocaleResolver lo mantendra para todas las paginas siguientes
             localeResolver.setLocale(request, response, locale);
         }
         return "login";
@@ -62,7 +58,7 @@ public class AuthController {
 
     @GetMapping("/registro")
     public String mostrarRegistro(Model model) {
-        model.addAttribute("usuario", new Usuario());
+        model.addAttribute("usuario", new co.edu.usco.reservas.entity.Usuario());
         return "registro/formulario";
     }
 
@@ -76,35 +72,67 @@ public class AuthController {
             model.addAttribute("errorPassword", "La contrasena debe tener al menos 8 caracteres.");
             return "registro/formulario";
         }
-        // Las clientas siempre se registran con rol ROLE_CLIENTE
         usuario.setRol("ROLE_CLIENTE");
         usuarioService.registrarUsuario(usuario);
         return "redirect:/login?registro=true";
     }
 
     /**
-     * Dashboard principal de la clienta.
-     * Carga el historial completo, citas pendientes y realizadas
-     * para mostrar en el calendario interactivo.
+     * Dashboard de la clienta.
+     * El Locale se obtiene de la petición HTTP para resolver
+     * los nombres de meses y días en el idioma activo.
+     * Estos valores se pasan al template para que el calendario
+     * JavaScript los use sin necesidad de lógica de idioma en JS.
      */
     @GetMapping("/cliente/dashboard")
-    public String dashboardCliente(Authentication auth, Model model) {
+    public String dashboardCliente(Authentication auth, Model model,
+                                   HttpServletRequest request) {
         Usuario usuario = usuarioService.buscarPorCorreo(auth.getName());
-        model.addAttribute("usuario", usuario);
+
+        // Obtener el Locale activo desde la petición HTTP
+        // (CookieLocaleResolver lo resuelve automáticamente)
+        Locale locale = localeResolver.resolveLocale(request);
+
+        model.addAttribute("usuario",    usuario);
         model.addAttribute("historial",  reservaService.listarHistorialCliente(usuario.getId(), null));
         model.addAttribute("pendientes", reservaService.listarHistorialCliente(usuario.getId(), "PENDIENTE"));
         model.addAttribute("realizadas", reservaService.listarHistorialCliente(usuario.getId(), "REALIZADO"));
+
+        // Nombres de meses en el idioma activo para el calendario JS
+        // messageSource.getMessage resuelve la clave del archivo messages_XX.properties
+        model.addAttribute("mesesCalendario", Arrays.asList(
+                messageSource.getMessage("cal.enero",     null, locale),
+                messageSource.getMessage("cal.febrero",   null, locale),
+                messageSource.getMessage("cal.marzo",     null, locale),
+                messageSource.getMessage("cal.abril",     null, locale),
+                messageSource.getMessage("cal.mayo",      null, locale),
+                messageSource.getMessage("cal.junio",     null, locale),
+                messageSource.getMessage("cal.julio",     null, locale),
+                messageSource.getMessage("cal.agosto",    null, locale),
+                messageSource.getMessage("cal.septiembre",null, locale),
+                messageSource.getMessage("cal.octubre",   null, locale),
+                messageSource.getMessage("cal.noviembre", null, locale),
+                messageSource.getMessage("cal.diciembre", null, locale)
+        ));
+
+        // Días de la semana para los encabezados del calendario
+        model.addAttribute("diasSemana", Arrays.asList(
+                messageSource.getMessage("cal.dom", null, locale),
+                messageSource.getMessage("cal.lun", null, locale),
+                messageSource.getMessage("cal.mar", null, locale),
+                messageSource.getMessage("cal.mie", null, locale),
+                messageSource.getMessage("cal.jue", null, locale),
+                messageSource.getMessage("cal.vie", null, locale),
+                messageSource.getMessage("cal.sab", null, locale)
+        ));
+
         return "cliente/dashboard";
     }
 
-    /**
-     * Pagina de perfil de la clienta.
-     * Muestra datos personales e historial de citas.
-     */
     @GetMapping("/perfil")
     public String verPerfil(Authentication auth, Model model) {
         Usuario usuario = usuarioService.buscarPorCorreo(auth.getName());
-        model.addAttribute("usuario", usuario);
+        model.addAttribute("usuario",   usuario);
         model.addAttribute("historial", reservaService.listarHistorialCliente(usuario.getId(), null));
         return "perfil";
     }
@@ -115,8 +143,8 @@ public class AuthController {
                                    Authentication auth, Model model) {
         usuarioService.actualizarPerfil(auth.getName(), datosNuevos, passwordNuevo);
         Usuario usuario = usuarioService.buscarPorCorreo(auth.getName());
-        model.addAttribute("exito", true);
-        model.addAttribute("usuario", usuario);
+        model.addAttribute("exito",     true);
+        model.addAttribute("usuario",   usuario);
         model.addAttribute("historial", reservaService.listarHistorialCliente(usuario.getId(), null));
         return "perfil";
     }

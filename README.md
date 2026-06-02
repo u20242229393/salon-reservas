@@ -232,6 +232,7 @@ SELECT setval('reservas_id_seq',  (SELECT MAX(id) FROM reservas));
 La documentación interactiva está disponible en:
 
 ```
+http://localhost:8080/swagger-ui/index.html
 https://localhost:8443/swagger-ui/index.html
 ```
 
@@ -308,8 +309,6 @@ server.ssl.key-alias=thegirlsclub
 ---
 
 ## 👩‍💻 Desarrollado por
-
-Valeria Vargas Artunduaga — 20242229393
 
 Proyecto Final — Programación Web  
 Universidad Surcolombiana — USCO  

@@ -1,67 +1,113 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<!--
+    contactanos.html — Página de contacto de The Girls Club
+    =========================================================
+    Muestra los canales de contacto del salón y el mapa de ubicación.
+    Textos internacionalizados con #{clave}.
+    El mapa de Google Maps se carga como iframe embebido.
+-->
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head th:replace="~{layout/layout :: head}">
     <style>
-        :root {
-            --oat-milk: #F2E0D2;
-            --red-wine: #9E182B;
+        /* Caja blanca de información de contacto */
+        .info-box {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
         }
-        body { background-color: var(--oat-milk) !important; }
-        .info-box { background: white; border-radius: 15px; padding: 25px; }
-        .map-container { border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* Contenedor del iframe del mapa con bordes redondeados */
+        .map-container {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
 <nav th:replace="~{layout/layout :: navbar}"></nav>
 
-<div class="container mt-5">
+<main id="contenido-principal" class="container mt-5 pb-5">
     <div class="row g-4">
+
+        <!-- ── Información de contacto ──────────────────────────────
+             Cada campo usa #{contacto.X} para texto internacionalizado.
+             aria-hidden en iconos porque son decorativos.
+        ─────────────────────────────────────────────────────────── -->
         <div class="col-md-5">
             <div class="info-box shadow-sm h-100">
-                <h3 class="fw-bold mb-4" style="color: var(--red-wine);">Canales de Contacto</h3>
 
+                <!-- Título internacionalizado -->
+                <h1 class="fw-bold mb-4 h3"
+                    style="color:var(--red-wine)"
+                    th:text="#{contacto.titulo}">
+                    Canales de Contacto
+                </h1>
+
+                <!-- Ubicación -->
                 <div class="d-flex align-items-center mb-3">
-                    <div class="fs-3 me-3" style="color: var(--red-wine);"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="fs-3 me-3" style="color:var(--red-wine)" aria-hidden="true">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
                     <div>
-                        <h6 class="mb-0 fw-bold">Ubicación</h6>
+                        <h2 class="h6 mb-0 fw-bold"
+                            th:text="#{contacto.ubicacion}">Ubicación</h2>
                         <p class="text-muted mb-0 small">Neiva, Huila, Colombia</p>
                     </div>
                 </div>
 
+                <!-- Teléfono / WhatsApp -->
                 <div class="d-flex align-items-center mb-3">
-                    <div class="fs-3 me-3" style="color: var(--red-wine);"><i class="bi bi-telephone-fill"></i></div>
+                    <div class="fs-3 me-3" style="color:var(--red-wine)" aria-hidden="true">
+                        <i class="bi bi-telephone-fill"></i>
+                    </div>
                     <div>
-                        <h6 class="mb-0 fw-bold">Teléfono / WhatsApp</h6>
+                        <h2 class="h6 mb-0 fw-bold"
+                            th:text="#{contacto.telefono}">Teléfono</h2>
                         <p class="text-muted mb-0 small">+57 300 123 4567</p>
                     </div>
                 </div>
 
+                <!-- Horario de atención internacionalizado -->
                 <div class="d-flex align-items-center">
-                    <div class="fs-3 me-3" style="color: var(--red-wine);"><i class="bi bi-clock-fill"></i></div>
+                    <div class="fs-3 me-3" style="color:var(--red-wine)" aria-hidden="true">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
                     <div>
-                        <h6 class="mb-0 fw-bold">Horario de Atención</h6>
-                        <p class="text-muted mb-0 small">Lunes a Sábado: 8:00 AM - 7:00 PM</p>
+                        <h2 class="h6 mb-0 fw-bold"
+                            th:text="#{contacto.horario}">Horario</h2>
+                        <p class="text-muted mb-0 small"
+                           th:text="#{contacto.horario_valor}">
+                            Lunes a Sábado: 8:00 AM - 7:00 PM
+                        </p>
                     </div>
                 </div>
+
             </div>
         </div>
 
+        <!-- ── Mapa de Google Maps ───────────────────────────────────
+             iframe embebido con la ubicación de Neiva, Huila.
+             title: requerido para accesibilidad (describe el iframe).
+             loading="lazy": carga el mapa solo cuando es visible.
+        ─────────────────────────────────────────────────────────── -->
         <div class="col-md-7">
             <div class="map-container h-100">
                 <iframe
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.606775191834!2d-75.29801862529737!3d2.943145497033221!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3b74635676b7e3%3A0x6b772023cb2f9cd!2sNeiva%2C%20Huila!5e0!3m2!1ses!2sco!4v1716075600000!5m2!1ses!2sco"
                         width="100%"
                         height="380"
-                        style="border:0;"
+                        style="border:0"
                         allowfullscreen=""
                         loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade">
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Ubicación del salón The Girls Club en Neiva, Huila, Colombia">
                 </iframe>
             </div>
         </div>
-    </div>
-</div>
 
-<footer th:replace="~{layout/layout :: footer}" class="mt-5"></footer>
+    </div>
+</main>
+
+<footer th:replace="~{layout/layout :: footer}"></footer>
 </body>
 </html>

@@ -1,29 +1,214 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<!--
+    index.html — Página de inicio de The Girls Club
+    Diseño: tarjeta con franja lateral rosada y separador decorativo.
+    Sin burbujas — limpio y elegante acorde a la identidad del salón.
+    Textos i18n con #{clave} — cambian según el idioma del footer.
+-->
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head th:replace="~{layout/layout :: head}"></head>
 <body>
 <nav th:replace="~{layout/layout :: navbar}"></nav>
 
-<div class="container mt-4">
-    <div class="breadcrumb-container shadow-sm">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-house-heart me-1"></i> Club Inicio</li>
-            </ol>
-        </nav>
-    </div>
+<main id="contenido-principal" class="container mt-4 pb-5">
 
-    <div class="p-5 mb-4 card-premium rounded-3 text-center my-5 position-relative overflow-hidden">
-        <div class="py-5 position-relative" style="z-index: 2;">
-            <h1 class="display-3 fw-bold logo-glow mb-3">The Girls Club</h1>
-            <p class="col-md-8 fs-4 mx-auto mb-4" style="color: var(--red-wine);">Diseño de uñas esculpidas, pedicura de alta precisión y bienestar premium.</p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a th:href="@{/servicios}" class="btn btn-premium-primary btn-lg px-4 gap-3">Explorar Servicios</a>
-                <a th:href="@{/contactanos}" class="btn btn-premium-secondary btn-lg px-4">Canales de Contacto</a>
+    <!-- Breadcrumb internacionalizado -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <div class="bg-white p-3 rounded-3 shadow-sm d-inline-block">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item active" aria-current="page">
+                    <i class="bi bi-house-heart me-1" style="color:var(--red-wine)" aria-hidden="true"></i>
+                    <span th:text="#{inicio.breadcrumb}">Club Inicio</span>
+                </li>
+            </ol>
+        </div>
+    </nav>
+
+    <!-- ── Hero section ──────────────────────────────────────────────
+         Diseño: tarjeta blanca con borde rosa, franja lateral rosada
+         y separador de puntos bajo el título.
+         Sin burbujas — más limpio y profesional.
+    ─────────────────────────────────────────────────────────────── -->
+    <section class="hero-card rounded-4 overflow-hidden my-4"
+             aria-label="Bienvenida a The Girls Club">
+        <div class="row g-0">
+
+            <!-- Franja lateral izquierda — visible solo en desktop -->
+            <div class="col-md-3 hero-sidebar d-none d-md-flex flex-column align-items-center justify-content-center gap-3"
+                 aria-hidden="true">
+                <span class="sidebar-icon">💅</span>
+                <div class="sidebar-line"></div>
+                <span class="sidebar-text">Premium</span>
+                <div class="sidebar-line"></div>
+                <span class="sidebar-icon">✨</span>
+            </div>
+
+            <!-- Contenido principal -->
+            <div class="col-md-9 d-flex align-items-center justify-content-center py-5 px-4 px-md-5">
+                <div class="text-center" style="max-width:580px">
+
+                    <!-- Ícono mobile — solo en pantallas pequeñas -->
+                    <div class="d-md-none mb-3 fs-1" aria-hidden="true">💅</div>
+
+                    <!-- Decorador de 3 puntos encima del título -->
+                    <div class="hero-deco mb-3" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+
+                    <!-- Título principal — tipografía Playfair Display -->
+                    <h1 class="hero-title mb-2" th:text="#{inicio.titulo}">
+                        The Girls Club
+                    </h1>
+
+                    <!-- Separador elegante bajo el título -->
+                    <div class="hero-separator mb-4" aria-hidden="true"></div>
+
+                    <!-- Subtítulo internacionalizado -->
+                    <p class="hero-subtitle mb-5" th:text="#{inicio.subtitulo}">
+                        Diseño de uñas esculpidas, pedicura de alta precisión y bienestar premium.
+                    </p>
+
+                    <!-- Botones diferenciados -->
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+
+                        <!-- Primario: fondo vino sólido con sombra -->
+                        <a th:href="@{/servicios}"
+                           class="btn-hero-primary"
+                           th:text="#{inicio.btn_servicios}">
+                            Explorar Servicios
+                        </a>
+
+                        <!-- Secundario: solo borde vino, fondo transparente -->
+                        <a th:href="@{/contactanos}"
+                           class="btn-hero-secondary"
+                           th:text="#{inicio.btn_contacto}">
+                            Contáctanos
+                        </a>
+
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+
+</main>
+
+<style>
+    /* ── Tarjeta hero ──────────────────────────────────────────────
+       Fondo blanco con borde rosa suave y sombra cálida.
+    ─────────────────────────────────────────────────────────────── */
+    .hero-card {
+        background: #fff;
+        border: 2px solid var(--rose-quartz);
+        box-shadow: 0 8px 32px rgba(158,24,43,0.08);
+        min-height: 380px;
+    }
+
+    /* Franja lateral — gradiente vertical rosado */
+    .hero-sidebar {
+        background: linear-gradient(180deg, var(--rose-quartz) 0%, var(--blush) 50%, var(--rose-quartz) 100%);
+        padding: 40px 20px;
+    }
+    .sidebar-icon { font-size: 1.8rem; }
+    .sidebar-line { width: 1px; height: 60px; background: rgba(158,24,43,0.3); }
+    .sidebar-text {
+        font-family: 'Playfair Display', serif;
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--red-wine);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        writing-mode: vertical-rl;
+    }
+
+    /* 3 puntos decorativos sobre el título */
+    .hero-deco { display: flex; justify-content: center; gap: 6px; }
+    .hero-deco span {
+        display: inline-block;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--blush);
+    }
+    .hero-deco span:nth-child(2) {
+        background: var(--red-wine);
+        width: 10px; height: 10px;
+    }
+
+    /* Título */
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 800;
+        font-size: clamp(2.2rem, 5vw, 3.2rem);
+        color: var(--red-wine);
+        line-height: 1.1;
+    }
+
+    /* Separador gradiente bajo el título */
+    .hero-separator {
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--rose-quartz), var(--red-wine), var(--rose-quartz));
+        border-radius: 2px;
+        margin: 0 auto;
+    }
+
+    /* Subtítulo */
+    .hero-subtitle {
+        font-size: clamp(.95rem, 2vw, 1.1rem);
+        color: #555;
+        line-height: 1.7;
+    }
+
+    /* Botón primario — vino sólido con sombra */
+    .btn-hero-primary {
+        display: inline-block;
+        background: var(--red-wine);
+        color: #fff !important;
+        border: 2px solid var(--red-wine);
+        border-radius: 30px;
+        padding: 13px 30px;
+        font-size: .95rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all .3s;
+        min-width: 190px;
+        text-align: center;
+        box-shadow: 0 4px 14px rgba(158,24,43,0.28);
+    }
+    .btn-hero-primary:hover, .btn-hero-primary:focus {
+        background: #7A1121;
+        border-color: #7A1121;
+        color: #fff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(158,24,43,0.38);
+        outline: 3px solid var(--blush);
+        outline-offset: 2px;
+    }
+
+    /* Botón secundario — borde vino, fondo transparente */
+    .btn-hero-secondary {
+        display: inline-block;
+        background: transparent;
+        color: var(--red-wine) !important;
+        border: 2px solid var(--red-wine);
+        border-radius: 30px;
+        padding: 13px 30px;
+        font-size: .95rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all .3s;
+        min-width: 190px;
+        text-align: center;
+    }
+    .btn-hero-secondary:hover, .btn-hero-secondary:focus {
+        background: var(--red-wine);
+        color: #fff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(158,24,43,0.22);
+        outline: 3px solid var(--blush);
+        outline-offset: 2px;
+    }
+</style>
 
 <footer th:replace="~{layout/layout :: footer}"></footer>
 </body>

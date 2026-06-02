@@ -18,27 +18,25 @@
         .text-wine{color:var(--red-wine)!important;}
         .form-control,.form-select{border-radius:10px!important;border:1px solid var(--rose-quartz)!important;}
         .form-control:focus,.form-select:focus{border-color:var(--blush)!important;box-shadow:0 0 0 0.2rem rgba(242,175,188,0.25)!important;}
-        .btn-wine{background:var(--red-wine);color:#fff;border:none;border-radius:30px;font-weight:600;padding:8px 20px;transition:.3s;}
+        .btn-wine{background:var(--red-wine);color:#fff;border:none;border-radius:30px;font-weight:600;padding:8px 20px;transition:.3s;width:100%;}
         .btn-wine:hover{background:#7A1121;color:#fff;}
-        /* Tarjeta de servicio en el listado */
         .servicio-card{border:1.5px solid var(--rose-quartz);border-radius:16px;padding:16px;transition:.2s;background:var(--blanco);}
         .servicio-card:hover{box-shadow:0 6px 20px rgba(158,24,43,0.08);transform:translateY(-2px);}
         .servicio-card.inactivo{opacity:.5;border-style:dashed;}
-        /* Imagen de referencia del servicio */
         .servicio-img{width:60px;height:60px;border-radius:12px;object-fit:cover;flex-shrink:0;}
         .servicio-img-placeholder{width:60px;height:60px;border-radius:12px;background:var(--rose-quartz);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.5rem;}
-        /* Badges de estado */
         .badge-activo{background:#E6F4EA;color:#0F5528;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
         .badge-inactivo{background:#f8f9fa;color:#999;border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:600;}
-        /* Nav pills del admin */
         .nav-pill-admin{background:transparent;border:1.5px solid var(--rose-quartz);border-radius:30px;padding:6px 16px;font-size:.82rem;color:var(--red-wine);font-weight:600;text-decoration:none;transition:.2s;}
         .nav-pill-admin:hover,.nav-pill-admin.active{background:var(--red-wine);color:#fff;border-color:var(--red-wine);}
         a:focus-visible,button:focus-visible{outline:3px solid var(--red-wine);outline-offset:2px;}
+        /* Panel de edición — resaltado en azul suave para diferenciarlo del formulario de creación */
+        .card-editar{background:var(--blanco);border:2px solid #90CAF9;border-radius:20px;padding:28px;box-shadow:0 10px 30px rgba(13,110,253,0.06);}
+        .card-editar .form-control{border-color:#90CAF9!important;}
     </style>
 </head>
 <body>
 
-<!-- NAVBAR ADMIN -->
 <nav class="navbar navbar-expand-lg navbar-admin shadow-sm mb-4"
      role="navigation" aria-label="Navegacion administrativa">
     <div class="container">
@@ -47,16 +45,16 @@
             <span style="font-family:'Poppins';font-size:1rem;font-weight:400;color:#999">| Admin</span>
         </a>
         <div class="ms-auto d-flex align-items-center gap-2 flex-wrap">
-            <a th:href="@{/admin/dashboard}"    class="nav-pill-admin">
+            <a th:href="@{/admin/dashboard}"     class="nav-pill-admin">
                 <i class="bi bi-house me-1" aria-hidden="true"></i>Dashboard
             </a>
-            <a th:href="@{/admin/agenda}"       class="nav-pill-admin">
+            <a th:href="@{/admin/agenda}"        class="nav-pill-admin">
                 <i class="bi bi-calendar-week me-1" aria-hidden="true"></i>Agenda
             </a>
             <a th:href="@{/admin/especialistas}" class="nav-pill-admin">
                 <i class="bi bi-people me-1" aria-hidden="true"></i>Especialistas
             </a>
-            <a th:href="@{/admin/servicios}"    class="nav-pill-admin active" aria-current="page">
+            <a th:href="@{/admin/servicios}"     class="nav-pill-admin active" aria-current="page">
                 <i class="bi bi-scissors me-1" aria-hidden="true"></i>Servicios
             </a>
             <form th:action="@{/logout}" method="post" style="margin:0">
@@ -70,96 +68,170 @@
 
 <main id="contenido-principal" class="container pb-5">
 
-    <!-- Mensajes de exito/error -->
+    <!-- Mensajes de éxito/error -->
     <div th:if="${exito}" class="alert alert-success alert-dismissible small rounded-3 py-2 mb-3"
          role="status" aria-live="polite">
         <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
         <span th:text="${exito}"></span>
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"
-                aria-label="Cerrar notificacion"></button>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
     <div th:if="${error}" class="alert alert-danger alert-dismissible small rounded-3 py-2 mb-3"
          role="alert" aria-live="assertive">
         <i class="bi bi-exclamation-circle-fill me-2" aria-hidden="true"></i>
         <span th:text="${error}"></span>
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"
-                aria-label="Cerrar notificacion"></button>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 
     <div class="row g-4">
 
-        <!-- ═══ FORMULARIO NUEVO SERVICIO ═══ -->
+        <!-- ═══ COLUMNA IZQUIERDA: Formularios ═══ -->
         <div class="col-md-4">
+
+            <!--
+                FORMULARIO DE EDICIÓN — visible solo cuando se hace clic en "Editar"
+                Se muestra encima del formulario de creación con borde azul para diferenciarlo.
+                servicioEditar viene del controlador cuando se navega a /admin/servicios/{id}/editar
+            -->
+            <div th:if="${servicioEditar != null}" class="card-editar mb-4">
+                <h2 class="h5 fw-bold mb-1" style="color:#0D6EFD">
+                    <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Editar servicio
+                </h2>
+                <p class="text-muted small mb-4">
+                    Modifica los datos del servicio seleccionado.
+                    El estado activo/inactivo se conserva.
+                </p>
+
+                <form th:action="@{/admin/servicios/{id}/editar(id=${servicioEditar.id})}"
+                      th:object="${servicioEditar}" method="post" novalidate>
+
+                    <div class="mb-3">
+                        <label for="editNombre" class="form-label fw-bold small text-muted">
+                            Nombre <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="editNombre" th:field="*{nombre}"
+                               class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editDesc" class="form-label fw-bold small text-muted">Descripcion</label>
+                        <textarea id="editDesc" th:field="*{descripcion}"
+                                  class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="editDuracion" class="form-label fw-bold small text-muted">
+                                Duracion (min) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="editDuracion" th:field="*{duracionMinutos}"
+                                   class="form-control" required min="5" max="480">
+                        </div>
+                        <div class="col-6">
+                            <label for="editPrecio" class="form-label fw-bold small text-muted">
+                                Precio ($) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="editPrecio" th:field="*{precio}"
+                                   class="form-control" required min="0" step="500">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="editImagen" class="form-label fw-bold small text-muted">
+                            URL imagen
+                        </label>
+                        <input type="text" id="editImagen" th:field="*{imagenUrl}"
+                               class="form-control"
+                               placeholder="/images/servicios/nombre.jpg o https://...">
+                        <!-- Vista previa de la imagen actual o nueva -->
+                        <div class="mt-2"
+                             th:if="${servicioEditar.imagenUrl != null and !servicioEditar.imagenUrl.isEmpty()}">
+                            <img th:src="${servicioEditar.imagenUrl}"
+                                 th:alt="${servicioEditar.nombre}"
+                                 id="editImgPreview"
+                                 style="max-width:100%;border-radius:10px;max-height:100px;object-fit:cover"
+                                 onerror="this.style.display='none'">
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit"
+                                class="btn fw-bold rounded-pill"
+                                style="background:#0D6EFD;color:#fff;border:none">
+                            <i class="bi bi-check2 me-2" aria-hidden="true"></i>Guardar cambios
+                        </button>
+                        <!-- Cancelar edición: vuelve al listado sin editar -->
+                        <a th:href="@{/admin/servicios}"
+                           class="btn btn-outline-secondary rounded-pill fw-bold">
+                            <i class="bi bi-x me-1" aria-hidden="true"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FORMULARIO DE CREACIÓN — siempre visible -->
             <div class="card-premium">
                 <h2 class="h5 fw-bold text-wine mb-1">
                     <i class="bi bi-plus-circle-fill me-2" aria-hidden="true"></i>Nuevo servicio
                 </h2>
                 <p class="text-muted small mb-4">
-                    Agrega un nuevo servicio al catalogo del salon.
-                    La imagen de referencia aparecera en la pagina de servicios para las clientas.
+                    Agrega un nuevo servicio al catalogo.
+                    Puedes usar una URL externa o una ruta local
+                    como <code>/images/servicios/nombre.jpg</code>
                 </p>
 
                 <form th:action="@{/admin/servicios/crear}"
-                      th:object="${nuevoServicio}" method="post"
-                      novalidate aria-label="Formulario para crear nuevo servicio">
+                      th:object="${nuevoServicio}" method="post" novalidate>
 
                     <div class="mb-3">
                         <label for="svcNombre" class="form-label fw-bold small text-muted">
-                            Nombre del servicio <span class="text-danger" aria-label="requerido">*</span>
+                            Nombre <span class="text-danger">*</span>
                         </label>
                         <input type="text" id="svcNombre" th:field="*{nombre}"
-                               class="form-control" placeholder="Ej: Manicure gel" required
-                               aria-required="true">
+                               class="form-control" placeholder="Ej: Manicure gel" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="svcDesc" class="form-label fw-bold small text-muted">
-                            Descripcion
-                        </label>
+                        <label for="svcDesc" class="form-label fw-bold small text-muted">Descripcion</label>
                         <textarea id="svcDesc" th:field="*{descripcion}"
                                   class="form-control" rows="2"
-                                  placeholder="Breve descripcion del servicio..."></textarea>
+                                  placeholder="Breve descripcion..."></textarea>
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label for="svcDuracion" class="form-label fw-bold small text-muted">
-                                Duracion (min) <span class="text-danger" aria-label="requerido">*</span>
+                                Duracion (min) <span class="text-danger">*</span>
                             </label>
                             <input type="number" id="svcDuracion" th:field="*{duracionMinutos}"
-                                   class="form-control" placeholder="60" required
-                                   min="5" max="480" aria-required="true">
+                                   class="form-control" placeholder="60" required min="5" max="480">
                         </div>
                         <div class="col-6">
                             <label for="svcPrecio" class="form-label fw-bold small text-muted">
-                                Precio ($) <span class="text-danger" aria-label="requerido">*</span>
+                                Precio ($) <span class="text-danger">*</span>
                             </label>
                             <input type="number" id="svcPrecio" th:field="*{precio}"
-                                   class="form-control" placeholder="65000" required
-                                   min="0" step="500" aria-required="true">
+                                   class="form-control" placeholder="65000" required min="0" step="500">
                         </div>
                     </div>
 
                     <div class="mb-4">
                         <label for="svcImagen" class="form-label fw-bold small text-muted">
-                            URL de imagen de referencia
+                            URL imagen
                         </label>
-                        <input type="url" id="svcImagen" th:field="*{imagenUrl}"
+                        <input type="text" id="svcImagen" th:field="*{imagenUrl}"
                                class="form-control"
-                               placeholder="https://ejemplo.com/imagen.jpg"
-                               aria-describedby="imagenHelp">
-                        <div id="imagenHelp" class="small text-muted mt-1">
+                               placeholder="/images/servicios/acrilicas.jpg">
+                        <div class="small text-muted mt-1">
                             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-                            Pega la URL de una imagen. Se mostrara en el catalogo de servicios.
+                            URL externa o ruta local del proyecto.
                         </div>
-                        <!-- Vista previa de la imagen si se ingresa URL -->
                         <div id="previewImagen" class="mt-2" style="display:none">
-                            <img id="imgPreview" src="" alt="Vista previa del servicio"
+                            <img id="imgPreview" src="" alt="Vista previa"
                                  style="max-width:100%;border-radius:10px;max-height:120px;object-fit:cover">
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-wine w-100">
+                    <button type="submit" class="btn-wine">
                         <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Agregar servicio
                     </button>
                 </form>
@@ -179,44 +251,30 @@
                     </div>
                 </div>
 
-                <!-- Sin servicios -->
-                <div th:if="${#lists.isEmpty(servicios)}"
-                     class="text-center text-muted py-5">
+                <div th:if="${#lists.isEmpty(servicios)}" class="text-center text-muted py-5">
                     <i class="bi bi-scissors d-block fs-2 mb-2"
                        style="color:var(--rose-quartz)" aria-hidden="true"></i>
                     No hay servicios registrados aun.
                 </div>
 
-                <!-- Grid de servicios -->
                 <div class="row g-3" th:if="${!#lists.isEmpty(servicios)}">
                     <div class="col-md-6" th:each="svc : ${servicios}">
-                        <article th:class="${svc.activo ? 'servicio-card' : 'servicio-card inactivo'}"
-                                 th:attr="aria-label=${svc.nombre} + (${svc.activo} ? '' : ' - Inactivo')">
+                        <article th:class="${svc.activo ? 'servicio-card' : 'servicio-card inactivo'}">
 
                             <div class="d-flex gap-3 mb-3">
-                                <!--
-                                    Si el servicio tiene imagen URL la mostramos.
-                                    Si no, mostramos un placeholder con emoji de tijeras.
-                                    Esto hace el catalogo mas visual para las clientas.
-                                -->
                                 <img th:if="${svc.imagenUrl != null and !svc.imagenUrl.isEmpty()}"
                                      th:src="${svc.imagenUrl}"
-                                     th:alt="${svc.nombre} + ' - imagen de referencia'"
+                                     th:alt="${svc.nombre}"
                                      class="servicio-img"
                                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                                 <div class="servicio-img-placeholder"
                                      th:style="${svc.imagenUrl != null and !svc.imagenUrl.isEmpty()} ? 'display:none' : ''"
-                                     aria-hidden="true">
-                                    ✂️
-                                </div>
+                                     aria-hidden="true">✂️</div>
                                 <div class="flex-grow-1">
                                     <div class="fw-bold" th:text="${svc.nombre}">Nombre</div>
                                     <div class="text-muted small"
-                                         th:text="${svc.descripcion != null ? svc.descripcion : 'Sin descripcion'}">
-                                        Desc
-                                    </div>
-                                    <div class="mt-1 d-flex gap-2 flex-wrap">
-                                        <!-- Badge de estado accesible con contraste correcto -->
+                                         th:text="${svc.descripcion != null ? svc.descripcion : 'Sin descripcion'}">Desc</div>
+                                    <div class="mt-1">
                                         <span th:if="${svc.activo}" class="badge-activo">
                                             <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Activo
                                         </span>
@@ -227,7 +285,6 @@
                                 </div>
                             </div>
 
-                            <!-- Precio y duracion -->
                             <div class="d-flex gap-3 mb-3" style="font-size:.82rem">
                                 <span style="color:var(--red-wine);font-weight:600">
                                     <i class="bi bi-tag me-1" aria-hidden="true"></i>
@@ -239,36 +296,47 @@
                                 </span>
                             </div>
 
-                            <!--
-                                Boton de toggle (activar/desactivar).
-                                Usa soft delete: el servicio NO se elimina de la BD,
-                                solo cambia su estado activo/inactivo.
-                                Esto preserva el historial de citas que usaron este servicio.
-                            -->
-                            <form th:action="@{/admin/servicios/{id}/toggle(id=${svc.id})}"
-                                  method="post">
-                                <button type="submit"
-                                        th:class="${svc.activo
-                                            ? 'btn btn-sm btn-outline-warning w-100 rounded-pill fw-bold'
-                                            : 'btn btn-sm btn-outline-success w-100 rounded-pill fw-bold'}"
-                                        th:text="${svc.activo ? 'Desactivar servicio' : 'Activar servicio'}"
-                                        th:attr="aria-label=${svc.activo
-                                            ? 'Desactivar ' + svc.nombre + ' (se conserva el historial)'
-                                            : 'Activar ' + svc.nombre}">
-                                    Desactivar
-                                </button>
-                            </form>
+                            <!-- Botones: Editar y Toggle en la misma fila -->
+                            <div class="d-flex gap-2">
+
+                                <!--
+                                    Botón Editar — navega a /admin/servicios/{id}/editar
+                                    que carga el servicio en el formulario de edición (columna izquierda).
+                                    Se resalta con borde azul para diferenciarlo del toggle.
+                                -->
+                                <a th:href="@{/admin/servicios/{id}/editar(id=${svc.id})}"
+                                   class="btn btn-sm btn-outline-primary rounded-pill fw-bold flex-grow-1"
+                                   th:attr="aria-label='Editar ' + ${svc.nombre}">
+                                    <i class="bi bi-pencil me-1" aria-hidden="true"></i>Editar
+                                </a>
+
+                                <!--
+                                    Botón Toggle — activa o desactiva el servicio (soft delete).
+                                    El servicio NO se elimina: las citas históricas lo siguen referenciando.
+                                -->
+                                <form th:action="@{/admin/servicios/{id}/toggle(id=${svc.id})}"
+                                      method="post" style="flex-grow:1">
+                                    <button type="submit"
+                                            th:class="${svc.activo
+                                                ? 'btn btn-sm btn-outline-warning w-100 rounded-pill fw-bold'
+                                                : 'btn btn-sm btn-outline-success w-100 rounded-pill fw-bold'}"
+                                            th:text="${svc.activo ? 'Desactivar' : 'Activar'}"
+                                            th:attr="aria-label=${svc.activo
+                                                ? 'Desactivar ' + svc.nombre
+                                                : 'Activar ' + svc.nombre}">
+                                    </button>
+                                </form>
+                            </div>
+
                         </article>
                     </div>
                 </div>
 
-                <!-- Nota sobre soft delete -->
                 <div class="mt-4 p-3 rounded-3 small"
-                     style="background:var(--rose-quartz);color:var(--red-wine)"
-                     role="note">
+                     style="background:var(--rose-quartz);color:var(--red-wine)" role="note">
                     <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
-                    <strong>Nota:</strong> Al desactivar un servicio, este deja de aparecer
-                    para nuevas reservas pero el historial de citas anteriores se conserva intacto.
+                    <strong>Nota:</strong> Al desactivar un servicio deja de aparecer para nuevas
+                    reservas pero el historial de citas anteriores se conserva intacto.
                 </div>
             </div>
         </div>
@@ -278,21 +346,40 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Vista previa de la imagen cuando se ingresa una URL
-document.getElementById('svcImagen').addEventListener('input', function() {
-    var url = this.value.trim();
-    var preview = document.getElementById('previewImagen');
-    var img = document.getElementById('imgPreview');
-    if (url) {
-        img.src = url;
-        preview.style.display = 'block';
-        // Si la imagen no carga, ocultamos el preview
-        img.onerror = function() { preview.style.display = 'none'; };
-        img.onload  = function() { preview.style.display = 'block'; };
-    } else {
-        preview.style.display = 'none';
+    // Vista previa al escribir URL en el formulario de creación
+    var svcImagen = document.getElementById('svcImagen');
+    if (svcImagen) {
+        svcImagen.addEventListener('input', function() {
+            var url = this.value.trim();
+            var preview = document.getElementById('previewImagen');
+            var img = document.getElementById('imgPreview');
+            if (url) {
+                img.src = url;
+                preview.style.display = 'block';
+                img.onerror = function() { preview.style.display = 'none'; };
+                img.onload  = function() { preview.style.display = 'block'; };
+            } else {
+                preview.style.display = 'none';
+            }
+        });
     }
-});
+
+    // Vista previa al editar la URL en el formulario de edición
+    var editImagen = document.getElementById('editImagen');
+    if (editImagen) {
+        editImagen.addEventListener('input', function() {
+            var preview = document.getElementById('editImgPreview');
+            if (preview) {
+                preview.src = this.value.trim();
+                preview.style.display = this.value.trim() ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Si hay un formulario de edición abierto, hacer scroll hasta él automáticamente
+    if (document.querySelector('.card-editar')) {
+        document.querySelector('.card-editar').scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
 </script>
 </body>
 </html>

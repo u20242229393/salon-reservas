@@ -210,4 +210,45 @@ public class AdminController {
         }
         return "redirect:/admin/servicios";
     }
+
+    /**
+     * Muestra el formulario de edición de un servicio existente.
+     * Carga el servicio por ID y lo envía al modelo para prellenar el formulario.
+     */
+    @GetMapping("/servicios/{id}/editar")
+    public String editarServicioForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
+        Optional<Servicio> opt = servicioRepository.findById(id);
+        if (opt.isEmpty()) {
+            ra.addFlashAttribute("error", "Servicio no encontrado.");
+            return "redirect:/admin/servicios";
+        }
+        model.addAttribute("servicios", servicioRepository.findAll());
+        model.addAttribute("nuevoServicio", new Servicio());
+        // El servicio a editar se envía separado para prellenar el formulario de edición
+        model.addAttribute("servicioEditar", opt.get());
+        return "admin/servicios";
+    }
+
+    /**
+     * Guarda los cambios de un servicio editado.
+     * Preserva el estado activo/inactivo actual del servicio.
+     */
+    @PostMapping("/servicios/{id}/editar")
+    public String editarServicioGuardar(@PathVariable Long id,
+                                        @ModelAttribute("servicioEditar") Servicio datos,
+                                        RedirectAttributes ra) {
+        Optional<Servicio> opt = servicioRepository.findById(id);
+        if (opt.isPresent()) {
+            Servicio s = opt.get();
+            // Actualizar solo los campos editables — el estado activo se preserva
+            s.setNombre(datos.getNombre());
+            s.setDescripcion(datos.getDescripcion());
+            s.setDuracionMinutos(datos.getDuracionMinutos());
+            s.setPrecio(datos.getPrecio());
+            s.setImagenUrl(datos.getImagenUrl());
+            servicioRepository.save(s);
+            ra.addFlashAttribute("exito", "Servicio '" + s.getNombre() + "' actualizado correctamente.");
+        }
+        return "redirect:/admin/servicios";
+    }
 }

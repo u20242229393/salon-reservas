@@ -7,100 +7,108 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+
+import java.time.Duration;
 import java.util.Locale;
 
 /**
  * I18nConfig — Configuración de internacionalización (i18n).
  *
- * Permite que la aplicación muestre textos en múltiples idiomas:
+ * Permite que la aplicación muestre textos en 4 idiomas:
  *   Español (es) — por defecto
  *   Inglés  (en)
  *   Portugués (pt)
  *   Italiano  (it)
  *
- * Cómo funciona el flujo completo:
- * 1. Usuario selecciona un idioma en el selector 🌐 del navbar
- * 2. El navegador navega a la URL actual con ?lang=en (o pt, it, es)
- * 3. LocaleChangeInterceptor captura el parámetro ?lang
- * 4. SessionLocaleResolver guarda el Locale en la sesión HTTP
- * 5. En las plantillas Thymeleaf, #{nav.inicio} busca la clave "nav.inicio"
- *    en el archivo messages_en.properties (si el idioma es inglés)
- * 6. El idioma persiste para toda la sesión hasta que se cambie o cierre sesión
+ * DECISIÓN DE DISEÑO — CookieLocaleResolver en lugar de SessionLocaleResolver:
  *
- * Archivos de mensajes (en src/main/resources/i18n/):
+ * Problema con SessionLocaleResolver:
+ * Cuando el usuario hace login, Spring Security invalida la sesión HTTP
+ * anterior por seguridad (protección contra Session Fixation Attacks).
+ * Esto borraba el idioma elegido porque estaba guardado en la sesión.
+ *
+ * Solución con CookieLocaleResolver:
+ * El idioma se guarda en una COOKIE del navegador (no en la sesión del servidor).
+ * Las cookies sobreviven al login porque viven en el navegador.
+ * El idioma persiste incluso entre sesiones y reinicios del servidor.
+ *
+ * Flujo completo:
+ * 1. Usuario hace clic en 🇺🇸 EN en el footer
+ * 2. Navegador solicita la URL actual con ?lang=en
+ * 3. LocaleChangeInterceptor captura el parámetro ?lang=en
+ * 4. CookieLocaleResolver crea/actualiza la cookie "lang=en" (dura 1 año)
+ * 5. Usuario hace login → Spring Security invalida la sesión (normal)
+ * 6. En la siguiente petición, CookieLocaleResolver lee la cookie "lang=en"
+ * 7. El dashboard se renderiza en inglés ✓
+ *
+ * Archivos de mensajes en src/main/resources/i18n/:
  *   messages.properties      → Español (por defecto)
  *   messages_en.properties   → Inglés
  *   messages_pt.properties   → Portugués
  *   messages_it.properties   → Italiano
- *
- * Implementa WebMvcConfigurer para registrar el interceptor de cambio de idioma.
  */
 @Configuration
 public class I18nConfig implements WebMvcConfigurer {
 
     /**
-     * MessageSource — origen de los mensajes i18n.
+     * MessageSource — carga y provee los textos traducidos.
      *
-     * ReloadableResourceBundleMessageSource permite recargar los archivos
-     * de mensajes sin reiniciar la aplicación (útil en desarrollo).
-     *
-     * basename: prefijo de los archivos de mensajes.
-     * Spring busca automáticamente messages.properties, messages_en.properties, etc.
+     * ReloadableResourceBundleMessageSource busca los archivos
+     * messages_XX.properties según el idioma activo.
+     * Permite recargar traducciones sin reiniciar la app (útil en desarrollo).
+     * setUseCodeAsDefaultMessage: si no encuentra una clave, muestra la clave
+     * misma en lugar de lanzar excepción (facilita detectar traducciones faltantes).
      */
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource source = new ReloadableResourceBundleMessageSource();
         source.setBasename("classpath:i18n/messages");
         source.setDefaultEncoding("UTF-8");
-        // Si no encuentra una clave, muestra la clave misma (facilita depuración)
         source.setUseCodeAsDefaultMessage(true);
         return source;
     }
 
     /**
-     * LocaleResolver — decide cómo se determina el idioma de cada petición.
+     * LocaleResolver — determina el idioma de cada petición usando una cookie.
      *
-     * SessionLocaleResolver almacena el Locale elegido en la sesión HTTP.
-     * Esto significa que el idioma persiste mientras la sesión esté activa,
-     * incluso al navegar entre páginas.
-     *
-     * Alternativa no usada: CookieLocaleResolver (guarda en cookie del navegador,
-     * persiste entre sesiones pero es más complejo de manejar con OAuth2).
-     *
-     * Idioma por defecto: Español ("es")
+     * CookieLocaleResolver lee y escribe una cookie llamada "lang" en el navegador.
+     * Configuración:
+     * - Nombre de la cookie: "lang"
+     * - Duración: 365 días (1 año) — el idioma persiste entre sesiones
+     * - Idioma por defecto: Español ("es") si no hay cookie
      */
     @Bean
     public LocaleResolver localeResolver() {
-        SessionLocaleResolver resolver = new SessionLocaleResolver();
+        CookieLocaleResolver resolver = new CookieLocaleResolver("lang");
+        resolver.setCookieMaxAge(Duration.ofDays(365));
         resolver.setDefaultLocale(new Locale("es"));
         return resolver;
     }
 
     /**
-     * LocaleChangeInterceptor — intercepta peticiones con el parámetro ?lang=XX.
+     * LocaleChangeInterceptor — intercepta el parámetro ?lang=XX en cada URL.
      *
-     * Funciona como un filtro que revisa cada petición HTTP.
-     * Si encuentra el parámetro "lang" en la URL, llama a LocaleResolver
-     * para cambiar y guardar el nuevo idioma en la sesión.
+     * Se ejecuta antes de cada petición HTTP.
+     * Si detecta el parámetro "lang", llama a CookieLocaleResolver
+     * para actualizar la cookie con el nuevo idioma elegido.
      *
      * Ejemplo: GET /cliente/dashboard?lang=en
-     * → El interceptor detecta lang=en
-     * → Llama a SessionLocaleResolver.setLocale(request, response, Locale.ENGLISH)
-     * → El dashboard se renderiza en inglés
-     * → Las siguientes páginas también serán en inglés
+     * → Interceptor detecta lang=en
+     * → CookieLocaleResolver actualiza cookie "lang=en"
+     * → Thymeleaf usa messages_en.properties para renderizar la página
      */
     @Bean
     public LocaleChangeInterceptor localeChangeInterceptor() {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
-        interceptor.setParamName("lang"); // nombre del parámetro en la URL
+        interceptor.setParamName("lang");
         return interceptor;
     }
 
     /**
      * Registra el interceptor en el pipeline de Spring MVC.
-     * Sin este registro, el interceptor existe pero no se ejecuta.
+     * Sin este registro el interceptor existe como Bean pero no se ejecuta.
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

@@ -1,11 +1,19 @@
 <!DOCTYPE html>
+<!--
+    cliente/dashboard.html — Panel principal de la clienta
+    =======================================================
+    Muestra el calendario interactivo de citas, próximas citas
+    y resumen estadístico. Textos internacionalizados con #{clave}.
+    El JS del calendario usa los nombres de meses traducidos
+    según el idioma activo renderizado por Thymeleaf.
+-->
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head th:replace="~{layout/layout :: head}"></head>
 <body>
 <a href="#contenido-principal" class="skip-link"
    style="position:absolute;top:-100px;left:0;background:var(--red-wine);color:#fff;padding:8px 16px;border-radius:0 0 8px 0;font-weight:600;text-decoration:none;z-index:9999;transition:.2s;"
    onfocus="this.style.top='0'" onblur="this.style.top='-100px'">
-    Saltar al contenido principal
+    <span th:text="#{nav.inicio}">Saltar al contenido</span>
 </a>
 <nav th:replace="~{layout/layout :: navbar}"></nav>
 
@@ -20,74 +28,83 @@
         </div>
         <div>
             <h1 class="h4 fw-bold text-wine mb-0">
-                Bienvenida,
+                <!-- #{dashboard.bienvenida} cambia según el idioma -->
+                <span th:text="#{dashboard.bienvenida}">Bienvenida,</span>
                 <span th:text="${#strings.substringBefore(usuario.nombre,' ')}">Nombre</span> 💅
             </h1>
-            <p class="text-muted small mb-0">Gestiona tus citas y agendamientos desde aqui</p>
+            <p class="text-muted small mb-0" th:text="#{dashboard.subtitulo}">
+                Gestiona tus citas y agendamientos desde aquí
+            </p>
         </div>
         <a th:href="@{/reservas/formulario}" class="btn btn-club ms-auto px-4"
-           aria-label="Agendar una nueva cita">
-            <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Agendar nueva cita
+           th:attr="aria-label=#{dashboard.nueva_cita}">
+            <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>
+            <span th:text="#{dashboard.nueva_cita}">Agendar nueva cita</span>
         </a>
     </div>
 
     <div class="row g-4">
 
-        <!-- CALENDARIO PRINCIPAL -->
+        <!-- CALENDARIO -->
         <section class="col-md-8" aria-label="Calendario de citas">
             <div class="card-premium p-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2 class="h5 fw-bold text-wine mb-0">
-                        <i class="bi bi-calendar3 me-2" aria-hidden="true"></i>Mi calendario
+                        <i class="bi bi-calendar3 me-2" aria-hidden="true"></i>
+                        <span th:text="#{dashboard.mi_calendario}">Mi calendario</span>
                     </h2>
-                    <div class="d-flex gap-2" role="group" aria-label="Navegar meses">
+                    <div class="d-flex gap-2" role="group" th:attr="aria-label=#{dashboard.navegar_meses}">
                         <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"
-                                id="btnMesAnterior" aria-label="Mes anterior">
+                                id="btnMesAnterior" th:attr="aria-label=#{dashboard.mes_anterior}">
                             <i class="bi bi-chevron-left" aria-hidden="true"></i>
                         </button>
                         <span class="fw-bold text-wine px-2 d-flex align-items-center"
                               id="mesActualLabel" aria-live="polite" aria-atomic="true"></span>
                         <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"
-                                id="btnMesSiguiente" aria-label="Mes siguiente">
+                                id="btnMesSiguiente" th:attr="aria-label=#{dashboard.mes_siguiente}">
                             <i class="bi bi-chevron-right" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Dias semana -->
+                <!-- Días de la semana — traducidos con i18n -->
                 <div class="row g-0 text-center mb-2" role="row" aria-hidden="true">
-                    <div th:each="d : ${ {'Dom','Lun','Mar','Mie','Jue','Vie','Sab'} }"
+                    <div th:each="d : ${diasSemana}"
                          class="col"
                          style="font-size:.72rem;font-weight:700;color:#2D2D2D;letter-spacing:.5px;padding:4px 0"
                          th:text="${d}">D</div>
                 </div>
 
-                <div id="calendarGrid" role="grid" aria-label="Dias del mes"></div>
+                <div id="calendarGrid" role="grid" aria-label="Días del mes"></div>
 
                 <!-- Leyenda -->
                 <div class="d-flex gap-4 mt-3 flex-wrap"
-                     style="font-size:.78rem;color:#2D2D2D"
-                     aria-label="Leyenda de colores del calendario">
+                     style="font-size:.78rem;color:#2D2D2D">
                     <span>
-                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red-wine);margin-right:4px" aria-hidden="true"></span>Hoy
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red-wine);margin-right:4px" aria-hidden="true"></span>
+                        <span th:text="#{dashboard.leyenda_hoy}">Hoy</span>
                     </span>
                     <span>
-                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#F2AFBC;margin-right:4px" aria-hidden="true"></span>Cita pendiente
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#F2AFBC;margin-right:4px" aria-hidden="true"></span>
+                        <span th:text="#{dashboard.leyenda_pendiente}">Cita pendiente</span>
                     </span>
                     <span>
-                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#198754;margin-right:4px" aria-hidden="true"></span>Realizada
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#198754;margin-right:4px" aria-hidden="true"></span>
+                        <span th:text="#{dashboard.leyenda_realizada}">Realizada</span>
                     </span>
                     <span>
-                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dee2e6;margin-right:4px" aria-hidden="true"></span>Disponible
+                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dee2e6;margin-right:4px" aria-hidden="true"></span>
+                        <span th:text="#{dashboard.leyenda_disponible}">Disponible</span>
                     </span>
                 </div>
             </div>
 
-            <!-- Detalle cita -->
+            <!-- Detalle de cita al hacer clic en el calendario -->
             <div id="detalleCita" class="card-premium p-3 mt-3"
                  style="display:none;border-left:4px solid var(--red-wine)"
-                 role="region" aria-live="polite" aria-label="Detalle de cita seleccionada">
-                <h3 class="h6 fw-bold text-wine mb-2" id="detalleTitulo">Citas del dia</h3>
+                 role="region" aria-live="polite">
+                <h3 class="h6 fw-bold text-wine mb-2" id="detalleTitulo"
+                    th:text="#{dashboard.citas_del_dia}">Citas del día</h3>
                 <div id="detalleContenido"></div>
             </div>
         </section>
@@ -97,10 +114,12 @@
 
             <div class="card-premium p-3 mb-3">
                 <h2 class="h6 fw-bold text-wine mb-3">
-                    <i class="bi bi-clock me-2" aria-hidden="true"></i>Proximas citas
+                    <i class="bi bi-clock me-2" aria-hidden="true"></i>
+                    <span th:text="#{dashboard.proximas_citas}">Próximas citas</span>
                 </h2>
                 <div th:if="${#lists.isEmpty(pendientes)}"
-                     class="text-muted small text-center py-2">Sin citas proximas</div>
+                     class="text-muted small text-center py-2"
+                     th:text="#{dashboard.sin_proximas}">Sin citas próximas</div>
                 <div th:each="r : ${pendientes}"
                      class="d-flex gap-2 align-items-start py-2 border-bottom"
                      style="border-color:var(--rose-quartz)!important">
@@ -116,44 +135,45 @@
                         <div class="text-muted" style="font-size:.78rem"
                              th:text="${r.profesional != null ? r.profesional.nombre : '-'}">Prof</div>
                     </div>
-                    <span class="badge" style="background:#FFF3CD;color:#783700;font-size:.68rem">Pendiente</span>
+                    <span class="badge" style="background:#FFF3CD;color:#783700;font-size:.68rem"
+                          th:text="#{dashboard.estado_pendiente}">Pendiente</span>
                 </div>
                 <div class="text-center mt-3">
-                    <a th:href="@{/reservas/formulario}" class="btn btn-club btn-sm w-100"
-                       aria-label="Agendar una nueva cita">
-                        <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Agendar nueva cita
+                    <a th:href="@{/reservas/formulario}" class="btn btn-club btn-sm w-100">
+                        <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>
+                        <span th:text="#{dashboard.nueva_cita}">Agendar nueva cita</span>
                     </a>
                 </div>
             </div>
 
             <div class="card-premium p-3">
                 <h2 class="h6 fw-bold text-wine mb-3">
-                    <i class="bi bi-bar-chart me-2" aria-hidden="true"></i>Mi resumen
+                    <i class="bi bi-bar-chart me-2" aria-hidden="true"></i>
+                    <span th:text="#{dashboard.mi_resumen}">Mi resumen</span>
                 </h2>
                 <dl>
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom"
                          style="border-color:var(--rose-quartz)!important">
-                        <dt class="small text-muted fw-normal">Total citas</dt>
-                        <dd class="fw-bold text-wine mb-0"
-                            th:text="${historial != null ? historial.size() : 0}">0</dd>
+                        <dt class="small text-muted fw-normal" th:text="#{dashboard.total_citas}">Total citas</dt>
+                        <dd class="fw-bold text-wine mb-0" th:text="${historial != null ? historial.size() : 0}">0</dd>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom"
                          style="border-color:var(--rose-quartz)!important">
-                        <dt class="small text-muted fw-normal">Pendientes</dt>
+                        <dt class="small text-muted fw-normal" th:text="#{dashboard.estado_pendiente}">Pendientes</dt>
                         <dd class="fw-bold mb-0" style="color:#783700"
                             th:text="${pendientes != null ? pendientes.size() : 0}">0</dd>
                     </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
-                        <dt class="small text-muted fw-normal">Realizadas</dt>
+                        <dt class="small text-muted fw-normal" th:text="#{dashboard.estado_realizada}">Realizadas</dt>
                         <dd class="fw-bold text-success mb-0"
                             th:text="${realizadas != null ? realizadas.size() : 0}">0</dd>
                     </div>
                 </dl>
                 <div class="mt-3">
                     <a th:href="@{/perfil}" class="btn btn-sm w-100 rounded-pill fw-bold"
-                       style="border:1.5px solid var(--red-wine);color:var(--red-wine);background:transparent"
-                       aria-label="Ver y editar mi perfil">
-                        <i class="bi bi-person me-1" aria-hidden="true"></i>Ver mi perfil
+                       style="border:1.5px solid var(--red-wine);color:var(--red-wine);background:transparent">
+                        <i class="bi bi-person me-1" aria-hidden="true"></i>
+                        <span th:text="#{perfil.titulo}">Ver mi perfil</span>
                     </a>
                 </div>
             </div>
@@ -161,105 +181,124 @@
     </div>
 </main>
 
+<!--
+    Thymeleaf inyecta las citas como array JS y también los textos
+    del calendario traducidos. Así el JS usa los nombres de meses
+    y días en el idioma activo sin necesidad de lógica JS extra.
+-->
 <script th:inline="javascript">
-/*<![CDATA[*/
-var citasData = [];
-/*[# th:each="r : ${historial}"]*/
-citasData.push({
-    fecha:       /*[[${#temporals.format(r.fechaHoraCita, 'yyyy-MM-dd')}]]*/ '',
-    hora:        /*[[${#temporals.format(r.fechaHoraCita, 'HH:mm')}]]*/ '',
-    servicio:    /*[[${r.servicio != null ? r.servicio.nombre : '-'}]]*/ '',
-    profesional: /*[[${r.profesional != null ? r.profesional.nombre : '-'}]]*/ '',
-    estado:      /*[[${r.estado}]]*/ '',
-    pago:        /*[[${r.metodoPago}]]*/ ''
-});
-/*[/]*/
-/*]]>*/
+    /*<![CDATA[*/
+    // Datos de citas de la clienta (inyectados por Thymeleaf)
+    var citasData = [];
+    /*[# th:each="r : ${historial}"]*/
+    citasData.push({
+        fecha:       /*[[${#temporals.format(r.fechaHoraCita, 'yyyy-MM-dd')}]]*/ '',
+        hora:        /*[[${#temporals.format(r.fechaHoraCita, 'HH:mm')}]]*/ '',
+        servicio:    /*[[${r.servicio != null ? r.servicio.nombre : '-'}]]*/ '',
+        profesional: /*[[${r.profesional != null ? r.profesional.nombre : '-'}]]*/ '',
+        estado:      /*[[${r.estado}]]*/ '',
+        pago:        /*[[${r.metodoPago}]]*/ ''
+    });
+    /*[/]*/
+
+    // Nombres de meses en el idioma activo — renderizados por Thymeleaf
+    // Esto evita tener arrays de meses en múltiples idiomas en el JS
+    var MESES = /*[[${mesesCalendario}]]*/ ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    // Texto "Citas del día" traducido para el panel de detalle
+    var txtCitasDelDia = /*[[#{dashboard.citas_del_dia}]]*/ 'Citas del día';
+    /*]]>*/
 </script>
 
 <script>
-var mesActual = new Date().getMonth();
-var anioActual = new Date().getFullYear();
-var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var mesActual = new Date().getMonth();
+    var anioActual = new Date().getFullYear();
 
-function renderCal(mes, anio) {
-    document.getElementById('mesActualLabel').textContent = MESES[mes] + ' ' + anio;
-    var hoy = new Date(), pDia = new Date(anio,mes,1).getDay(), total = new Date(anio,mes+1,0).getDate();
-    var citasPorDia = {};
-    citasData.forEach(function(c){
-        if(!citasPorDia[c.fecha]) citasPorDia[c.fecha]=[];
-        citasPorDia[c.fecha].push(c);
-    });
-    var grid = document.getElementById('calendarGrid');
-    grid.innerHTML = '';
-    var filas = Math.ceil((pDia+total)/7);
-    for(var f=0;f<filas;f++){
-        var fila = document.createElement('div');
-        fila.className='row g-1 mb-1';
-        fila.setAttribute('role','row');
-        for(var c=0;c<7;c++){
-            var col = document.createElement('div');
-            col.className='col';
-            col.setAttribute('role','gridcell');
-            var n=f*7+c-pDia+1;
-            if(n<1||n>total){ col.innerHTML='<div style="height:44px"></div>'; }
-            else {
-                var fStr=anio+'-'+String(mes+1).padStart(2,'0')+'-'+String(n).padStart(2,'0');
-                var esHoy=n===hoy.getDate()&&mes===hoy.getMonth()&&anio===hoy.getFullYear();
-                var esPasado=new Date(anio,mes,n)<new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate());
-                var citas=citasPorDia[fStr]||[];
-                var tieneCita=citas.length>0;
-                var bgColor,txtColor,borderColor,cursor,dotColor='';
-                if(esHoy){bgColor='var(--red-wine)';txtColor='#fff';borderColor='var(--red-wine)';cursor='default';}
-                else if(tieneCita){
-                    var est=citas[0].estado;
-                    bgColor=est==='REALIZADO'?'#E6F4EA':est==='CANCELADO'?'#f8f9fa':'var(--rose-quartz)';
-                    txtColor=est==='REALIZADO'?'#0F5528':est==='CANCELADO'?'#2D2D2D':'var(--red-wine)';
-                    borderColor=est==='REALIZADO'?'#0F5528':est==='CANCELADO'?'#dee2e6':'var(--blush)';
-                    dotColor=est==='REALIZADO'?'#0F5528':est==='CANCELADO'?'#aaa':'#F2AFBC';
-                    cursor='pointer';
-                } else if(!esPasado){bgColor='transparent';txtColor='#2D2D2D';borderColor='transparent';cursor='pointer';}
-                else{bgColor='transparent';txtColor='#aaa';borderColor='transparent';cursor='default';}
-                var onclick='';
-                if(tieneCita) onclick='mostrarDetalle(\''+fStr+'\')';
-                else if(!esPasado&&!esHoy) onclick='agendar(\''+fStr+'\')';
-                var ariaLabel=n+' de '+MESES[mes]+(esHoy?' hoy':'')+(tieneCita?' '+citas.length+' cita':'')+((!esPasado&&!esHoy&&!tieneCita)?' disponible para agendar':'');
-                col.innerHTML='<div onclick="'+onclick+'" role="button" tabindex="'+(onclick?'0':'-1')+'" aria-label="'+ariaLabel+'" onkeypress="if(event.key===\'Enter\'){'+onclick+'}" style="height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:'+bgColor+';color:'+txtColor+';cursor:'+cursor+';border:1.5px solid '+borderColor+';font-size:.85rem;font-weight:'+(esHoy||tieneCita?'700':'400')+';transition:all .15s;position:relative">'+n+(tieneCita&&!esHoy?'<span style="position:absolute;bottom:3px;width:6px;height:6px;border-radius:50%;background:'+dotColor+'" aria-hidden="true"></span>':'')+'</div>';
+    function renderCal(mes, anio) {
+        document.getElementById('mesActualLabel').textContent = MESES[mes] + ' ' + anio;
+        var hoy = new Date();
+        var pDia = new Date(anio,mes,1).getDay();
+        var total = new Date(anio,mes+1,0).getDate();
+        var citasPorDia = {};
+        citasData.forEach(function(c){
+            if(!citasPorDia[c.fecha]) citasPorDia[c.fecha]=[];
+            citasPorDia[c.fecha].push(c);
+        });
+        var grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        var filas = Math.ceil((pDia+total)/7);
+        for(var f=0;f<filas;f++){
+            var fila = document.createElement('div');
+            fila.className = 'row g-1 mb-1';
+            fila.setAttribute('role','row');
+            for(var c=0;c<7;c++){
+                var col = document.createElement('div');
+                col.className = 'col';
+                col.setAttribute('role','gridcell');
+                var n = f*7+c-pDia+1;
+                if(n<1||n>total){ col.innerHTML='<div style="height:44px"></div>'; }
+                else {
+                    var fStr = anio+'-'+String(mes+1).padStart(2,'0')+'-'+String(n).padStart(2,'0');
+                    var esHoy = n===hoy.getDate()&&mes===hoy.getMonth()&&anio===hoy.getFullYear();
+                    var esPasado = new Date(anio,mes,n)<new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate());
+                    var citas = citasPorDia[fStr]||[];
+                    var tieneCita = citas.length>0;
+                    var bgColor,txtColor,borderColor,cursor,dotColor='';
+                    if(esHoy){
+                        bgColor='var(--red-wine)';txtColor='#fff';
+                        borderColor='var(--red-wine)';cursor='default';
+                    } else if(tieneCita){
+                        var est=citas[0].estado;
+                        bgColor=est==='REALIZADO'?'#E6F4EA':est==='CANCELADO'?'#f8f9fa':'var(--rose-quartz)';
+                        txtColor=est==='REALIZADO'?'#0F5528':est==='CANCELADO'?'#2D2D2D':'var(--red-wine)';
+                        borderColor=est==='REALIZADO'?'#0F5528':est==='CANCELADO'?'#dee2e6':'var(--blush)';
+                        dotColor=est==='REALIZADO'?'#0F5528':est==='CANCELADO'?'#aaa':'#F2AFBC';
+                        cursor='pointer';
+                    } else if(!esPasado){
+                        bgColor='transparent';txtColor='#2D2D2D';
+                        borderColor='transparent';cursor='pointer';
+                    } else {
+                        bgColor='transparent';txtColor='#aaa';
+                        borderColor='transparent';cursor='default';
+                    }
+                    var onclick='';
+                    if(tieneCita) onclick='mostrarDetalle(\''+fStr+'\')';
+                    else if(!esPasado&&!esHoy) onclick='agendar(\''+fStr+'\')';
+                    col.innerHTML='<div onclick="'+onclick+'" role="button" tabindex="'+(onclick?'0':'-1')+'" onkeypress="if(event.key===\'Enter\'){'+onclick+'}" style="height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:'+bgColor+';color:'+txtColor+';cursor:'+cursor+';border:1.5px solid '+borderColor+';font-size:.85rem;font-weight:'+(esHoy||tieneCita?'700':'400')+';transition:all .15s;position:relative">'+n+(tieneCita&&!esHoy?'<span style="position:absolute;bottom:3px;width:6px;height:6px;border-radius:50%;background:'+dotColor+'" aria-hidden="true"></span>':'')+'</div>';
+                }
+                fila.appendChild(col);
             }
-            fila.appendChild(col);
+            grid.appendChild(fila);
         }
-        grid.appendChild(fila);
     }
-}
 
-function mostrarDetalle(fechaStr){
-    var citas=citasData.filter(function(c){return c.fecha===fechaStr;});
-    if(!citas.length) return;
-    var p=fechaStr.split('-');
-    document.getElementById('detalleTitulo').textContent='Citas del '+p[2]+'/'+p[1]+'/'+p[0];
-    var html='';
-    citas.forEach(function(c){
-        var bc=c.estado==='PENDIENTE'?'background:#FFF3CD;color:#783700':c.estado==='REALIZADO'?'background:#D1E7DD;color:#0F5528':'background:#E2E3E5;color:#2D2D2D';
-        var pi=c.pago==='EFECTIVO'?'💵':c.pago==='TARJETA'?'💳':c.pago==='TRANSFERENCIA'?'🏦':'📱';
-        html+='<div class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:var(--rose-quartz)!important">'+
-            '<div style="font-size:1.6rem" aria-hidden="true">💅</div>'+
-            '<div class="flex-grow-1"><div class="fw-bold" style="font-size:.88rem">'+c.servicio+'</div>'+
-            '<div class="text-muted" style="font-size:.78rem">'+c.profesional+' · '+c.hora+'</div></div>'+
-            '<div class="text-end"><span class="badge rounded-pill d-block mb-1" style="'+bc+'">'+c.estado+'</span>'+
-            '<small class="text-muted" aria-label="Pago: '+c.pago+'">'+pi+' '+c.pago+'</small></div></div>';
-    });
-    document.getElementById('detalleContenido').innerHTML=html;
-    var d=document.getElementById('detalleCita');
-    d.style.display='block';
-    d.focus();
-    d.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
+    function mostrarDetalle(fechaStr){
+        var citas = citasData.filter(function(c){return c.fecha===fechaStr;});
+        if(!citas.length) return;
+        var p = fechaStr.split('-');
+        document.getElementById('detalleTitulo').textContent = txtCitasDelDia+' '+p[2]+'/'+p[1]+'/'+p[0];
+        var html='';
+        citas.forEach(function(c){
+            var bc=c.estado==='PENDIENTE'?'background:#FFF3CD;color:#783700':c.estado==='REALIZADO'?'background:#D1E7DD;color:#0F5528':'background:#E2E3E5;color:#2D2D2D';
+            var pi=c.pago==='EFECTIVO'?'💵':c.pago==='TARJETA'?'💳':c.pago==='TRANSFERENCIA'?'🏦':'📱';
+            html+='<div class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:var(--rose-quartz)!important">'+
+                '<div style="font-size:1.6rem" aria-hidden="true">💅</div>'+
+                '<div class="flex-grow-1"><div class="fw-bold" style="font-size:.88rem">'+c.servicio+'</div>'+
+                '<div class="text-muted" style="font-size:.78rem">'+c.profesional+' · '+c.hora+'</div></div>'+
+                '<div class="text-end"><span class="badge rounded-pill d-block mb-1" style="'+bc+'">'+c.estado+'</span>'+
+                '<small class="text-muted">'+pi+' '+c.pago+'</small></div></div>';
+        });
+        document.getElementById('detalleContenido').innerHTML=html;
+        var d=document.getElementById('detalleCita');
+        d.style.display='block';
+        d.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
 
-function agendar(fechaStr){window.location.href='/reservas/formulario?fecha='+fechaStr;}
+    function agendar(fechaStr){window.location.href='/reservas/formulario?fecha='+fechaStr;}
 
-document.getElementById('btnMesAnterior').addEventListener('click',function(){mesActual--;if(mesActual<0){mesActual=11;anioActual--;}renderCal(mesActual,anioActual);});
-document.getElementById('btnMesSiguiente').addEventListener('click',function(){mesActual++;if(mesActual>11){mesActual=0;anioActual++;}renderCal(mesActual,anioActual);});
-renderCal(mesActual,anioActual);
+    document.getElementById('btnMesAnterior').addEventListener('click',function(){mesActual--;if(mesActual<0){mesActual=11;anioActual--;}renderCal(mesActual,anioActual);});
+    document.getElementById('btnMesSiguiente').addEventListener('click',function(){mesActual++;if(mesActual>11){mesActual=0;anioActual++;}renderCal(mesActual,anioActual);});
+    renderCal(mesActual,anioActual);
 </script>
 
 <footer th:replace="~{layout/layout :: footer}"></footer>
